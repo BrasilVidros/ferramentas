@@ -3,106 +3,76 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Brasil Portas — Ferramentas</title>
+<title>Brasil Vidros — Ferramentas</title>
 <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Source Sans 3',sans-serif;background:#1a0e05;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;}
-
-.bg{position:fixed;inset:0;
-  background:linear-gradient(135deg,#1a0e05 0%,#2c1a08 50%,#3d2510 100%);
-  z-index:0;}
-.bg::after{content:'';position:fixed;inset:0;
-  background-image:
-    radial-gradient(circle at 15% 25%, rgba(200,144,42,.08) 0%, transparent 45%),
-    radial-gradient(circle at 85% 75%, rgba(92,61,30,.12) 0%, transparent 45%);
-  z-index:0;}
-
+body{font-family:'Source Sans 3',sans-serif;background:#0d1b2e;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 16px;}
+.bg{position:fixed;inset:0;background:linear-gradient(135deg,#0d1b2e 0%,#162640 50%,#1e3a5f 100%);z-index:0;}
+.bg::after{content:'';position:fixed;inset:0;background-image:radial-gradient(circle at 20% 20%,rgba(232,160,32,.06) 0%,transparent 50%),radial-gradient(circle at 80% 80%,rgba(26,95,168,.08) 0%,transparent 50%);z-index:0;}
 .container{position:relative;z-index:1;width:100%;max-width:640px;}
-
 .logo-area{text-align:center;margin-bottom:40px;}
-.logo-icon{font-size:52px;margin-bottom:12px;filter:drop-shadow(0 4px 18px rgba(200,144,42,.5));}
+.logo-icon{font-size:52px;margin-bottom:12px;filter:drop-shadow(0 4px 18px rgba(232,160,32,.4));}
 .logo-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:30px;color:#fff;letter-spacing:3px;line-height:1;}
 .logo-sub{font-size:12px;color:rgba(255,255,255,.35);letter-spacing:2px;text-transform:uppercase;margin-top:6px;}
-.logo-divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,#c8902a,transparent);margin:14px auto 0;}
-
+.logo-divider{width:60px;height:2px;background:linear-gradient(90deg,transparent,#e8a020,transparent);margin:14px auto 0;}
 .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:480px){.grid{grid-template-columns:1fr;}}
-
-.card{
-  background:rgba(255,255,255,.04);
-  border:1px solid rgba(200,144,42,.2);
-  border-radius:18px;
-  padding:22px 18px;
-  text-decoration:none;
-  display:flex;flex-direction:column;gap:11px;
-  transition:all .2s;position:relative;overflow:hidden;
-}
-.card::before{content:'';position:absolute;inset:0;border-radius:18px;
-  background:linear-gradient(135deg,rgba(200,144,42,.06),transparent);
-  opacity:0;transition:opacity .2s;}
-.card:hover{transform:translateY(-3px);border-color:rgba(200,144,42,.5);
-  box-shadow:0 12px 40px rgba(200,144,42,.15);}
-.card:hover::before{opacity:1;}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px 20px;text-decoration:none;display:flex;flex-direction:column;gap:12px;transition:all .2s;position:relative;overflow:hidden;}
+.card:hover{transform:translateY(-3px);border-color:rgba(255,255,255,.25);box-shadow:0 12px 40px rgba(0,0,0,.3);}
 .card:active{transform:translateY(0);}
-
-/* full width card */
-.card.full{grid-column:1/-1;}
-
-.card-ico{font-size:34px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.4));}
-.card-tag{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
-  padding:2px 8px;border-radius:20px;width:fit-content;}
-.tag-portas{background:rgba(200,144,42,.2);color:#e8b86d;}
+.card.full{grid-column:1/-1;max-width:340px;margin:0 auto;width:100%;}
+.card-ico{font-size:36px;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3));}
+.card-tag{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;width:fit-content;}
+.tag-vidros{background:rgba(26,95,168,.3);color:#7ab8f5;}
 .tag-agenda{background:rgba(38,166,154,.2);color:#80cbc4;}
-
-.card-name{font-family:'Oswald',sans-serif;font-weight:700;font-size:19px;color:#fff;letter-spacing:.5px;line-height:1.1;}
+.card-name{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:#fff;letter-spacing:.5px;line-height:1.1;}
 .card-desc{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5;}
 .card-arrow{margin-top:auto;font-size:16px;color:rgba(255,255,255,.2);transition:color .2s;align-self:flex-end;}
-.card:hover .card-arrow{color:rgba(200,144,42,.8);}
-
+.card:hover .card-arrow{color:rgba(255,255,255,.6);}
+.card-v:hover{border-color:rgba(26,95,168,.6);box-shadow:0 12px 40px rgba(26,95,168,.2);}
+.card-m:hover{border-color:rgba(38,166,154,.5);box-shadow:0 12px 40px rgba(38,166,154,.15);}
+.card-o:hover{border-color:rgba(232,160,32,.5);box-shadow:0 12px 40px rgba(232,160,32,.15);}
 .footer{text-align:center;margin-top:28px;font-size:11px;color:rgba(255,255,255,.15);letter-spacing:.5px;}
 </style>
 </head>
 <body>
 <div class="bg"></div>
 <div class="container">
-
   <div class="logo-area">
-    <div class="logo-icon">🚪</div>
-    <div class="logo-title">BRASIL PORTAS</div>
+    <div class="logo-icon">🪟</div>
+    <div class="logo-title">BRASIL VIDROS</div>
     <div class="logo-sub">Ferramentas de Gestão</div>
     <div class="logo-divider"></div>
   </div>
-
   <div class="grid">
 
-    <a class="card" href="BrasilPortas.html">
-      <div class="card-ico">🚪</div>
-      <div class="card-tag tag-portas">Portas</div>
-      <div class="card-name">BRASIL PORTAS</div>
-      <div class="card-desc">Projetos de portas com medidas, tipo de abertura, lado e desenho técnico em planta.</div>
-      <div class="card-arrow">→</div>
-    </a>
-
-    <a class="card" href="AgendaMedicao.html">
+    <a class="card card-m" href="AgendaMedicao.html">
       <div class="card-ico">📐</div>
       <div class="card-tag tag-agenda">Agenda</div>
       <div class="card-name">AGENDA DE MEDIÇÃO</div>
-      <div class="card-desc">Organize as medições do dia. Compartilhe pelo WhatsApp ou gere imagem.</div>
+      <div class="card-desc">Organize as medições do dia. Compartilhe pelo WhatsApp ou gere imagem para enviar.</div>
       <div class="card-arrow">→</div>
     </a>
 
-    <a class="card full" href="AgendaObras.html">
+    <a class="card card-o" href="AgendaObras.html">
       <div class="card-ico">🏗️</div>
       <div class="card-tag tag-agenda">Agenda</div>
       <div class="card-name">AGENDA DE OBRAS</div>
-      <div class="card-desc">Organize as obras do dia com equipe, horário, endereço e observações. Reordene arrastando os cards.</div>
+      <div class="card-desc">Organize as obras do dia com equipe, horário, endereço e observações. Reordene arrastando.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card card-v full" href="VidrosEditor.html">
+      <div class="card-ico">🪟</div>
+      <div class="card-tag tag-vidros">Vidros</div>
+      <div class="card-name">VIDROS EDITOR</div>
+      <div class="card-desc">Gerencie projetos de vidro. Medidas, tipos, observações e desenho de peças especiais.</div>
       <div class="card-arrow">→</div>
     </a>
 
   </div>
-
-  <div class="footer">Brasil Portas · Ferramentas internas</div>
+  <div class="footer">Brasil Vidros · Ferramentas internas</div>
 </div>
 </body>
 </html>
