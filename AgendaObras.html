@@ -183,7 +183,8 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;overfl
 
 <div class="modal-ov" id="modal">
   <div class="modal-ttl">🏗️ PRÉVIA DA AGENDA</div>
-  <div class="modal-hint">👆 Toque e segure → "Salvar na Fotos"</div>
+  <div class="modal-hint" id="modal-hint-text">👆 Toque e segure → "Salvar na Fotos"</div>
+  <button id="downloadBtn" onclick="downloadImagem()" style="display:none;background:#25d166;color:#fff;border:none;padding:10px 28px;border-radius:30px;font-size:13px;font-weight:700;cursor:pointer;font-family:Inter,sans-serif;margin-bottom:10px;">⬇️ Baixar imagem</button>
   <img class="modal-img" id="previewImg" src="" alt="Agenda de Obras">
   <button class="modal-close" onclick="closeModal()">✕ Fechar</button>
 </div>
@@ -207,6 +208,7 @@ body{font-family:'Inter',sans-serif;background:var(--bg);min-height:100vh;overfl
     <div class="save-chip" id="saveChip"><div class="dot"></div><span id="saveLabel">salvo</span></div>
     <button class="tb-btn" id="editBtn" onclick="toggleEdit()">✏️ Editar</button>
     <button class="tb-btn gold" onclick="gerarImagem()">📸 Imagem</button>
+    <button class="tb-btn" style="background:rgba(37,211,102,.2);color:#25d166;border:1px solid rgba(37,211,102,.3);" onclick="compartilharWhatsApp()" title="Enviar texto para WhatsApp">💬 WhatsApp</button>
   </div>
 
   <div class="reorder-hint" id="reorderHint">☰ Segure e arraste o card para reordenar as obras</div>
@@ -600,18 +602,75 @@ function toggleEdit(){
 document.getElementById('headerDate').addEventListener('input',scheduleSave);
 
 /* ── IMAGE ── */
+var _lastImgDataUrl=null;
+
 async function gerarImagem(){
   if(editMode)toggleEdit();
   var ld=document.getElementById('loading');ld.classList.add('show');
-  await new Promise(function(r){setTimeout(r,150);});
+  await new Promise(function(r){setTimeout(r,200);});
   try{
     var cv=await html2canvas(document.getElementById('agenda'),{scale:3,useCORS:true,backgroundColor:'#f0f4f8',logging:false});
-    document.getElementById('previewImg').src=cv.toDataURL('image/png');
+    _lastImgDataUrl=cv.toDataURL('image/png');
+    document.getElementById('previewImg').src=_lastImgDataUrl;
+    // detect desktop vs mobile
+    var isMobile=/Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    var hint=document.getElementById('modal-hint-text');
+    var dlBtn=document.getElementById('downloadBtn');
+    if(isMobile){
+      hint.textContent='👆 Toque e segure → "Salvar na Fotos"';
+      hint.style.display='block';
+      dlBtn.style.display='none';
+    } else {
+      hint.style.display='none';
+      dlBtn.style.display='inline-block';
+    }
     ld.classList.remove('show');
     document.getElementById('modal').classList.add('show');
   }catch(e){ld.classList.remove('show');alert('Erro ao gerar imagem.');}
 }
+
+function downloadImagem(){
+  if(!_lastImgDataUrl)return;
+  var data=loadAll(),day=data[cid]||{};
+  var label=(day.label||'agenda').replace(/[^a-zA-Z0-9À-ÿ\s]/g,'').replace(/\s+/g,'_');
+  var a=document.createElement('a');
+  a.href=_lastImgDataUrl;
+  a.download='Agenda_Obras_'+label+'.png';
+  a.click();
+}
+
 function closeModal(){document.getElementById('modal').classList.remove('show');}
+
+/* ── WHATSAPP ── */
+function compartilharWhatsApp(){
+  if(editMode)toggleEdit();
+  var data=loadAll(),day=data[cid]||{label:'',cards:[]};
+  var cards=day.cards||[];
+  if(!cards.length){alert('Nenhuma obra para compartilhar.');return;}
+
+  var linhas=[];
+  linhas.push('🏗️ *AGENDA DE OBRAS*');
+  linhas.push('📅 '+( day.label||'—' ));
+  linhas.push('');
+
+  cards.forEach(function(c,i){
+    linhas.push('━━━━━━━━━━━━━━━━━━');
+    linhas.push('*OBRA '+(i+1)+' — '+( c.cliente||'—' )+'*');
+    if(c.equipe)   linhas.push('👷 Equipe: '+c.equipe);
+    if(c.horario)  linhas.push('🕐 Horário: '+c.horario);
+    if(c.contato)  linhas.push('📞 Contato: '+c.contato);
+    if(c.endereco) linhas.push('📍 Endereço: '+c.endereco);
+    if(c.obs1)     linhas.push('⚠️ Obs: '+c.obs1);
+    linhas.push('');
+  });
+
+  linhas.push('━━━━━━━━━━━━━━━━━━');
+  linhas.push('_Gerado por Brasil Vidros_');
+
+  var texto=linhas.join('\n');
+  var url='https://wa.me/?text='+encodeURIComponent(texto);
+  window.open(url,'_blank');
+}
 
 /* ── INIT ── */
 window.addEventListener('DOMContentLoaded',function(){
