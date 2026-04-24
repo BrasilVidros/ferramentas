@@ -612,7 +612,7 @@ async function gerarImagem(){
 
 function downloadImagem(){
   if(!_lastImgDataUrl)return;
-  const data=loadAll(),day=data[currentId]||{};
+  const data=loadAll(),day=data[cid]||{};
   const label=(day.label||'agenda').replace(/[^\w\sÀ-ÿ]/g,'').replace(/\s+/g,'_');
   const a=document.createElement('a');
   a.href=_lastImgDataUrl;
@@ -625,7 +625,7 @@ function closeModal(){document.getElementById('modal').classList.remove('show');
 /* ── WHATSAPP ── */
 function compartilharWhatsApp(){
   if(editMode)toggleEdit();
-  const data=loadAll(),day=data[currentId]||{label:'',cards:[]};
+  const data=loadAll(),day=data[cid]||{label:'',cards:[]};
   const cards=day.cards||[];
   if(!cards.length){alert('Nenhuma medição para compartilhar.');return;}
 
