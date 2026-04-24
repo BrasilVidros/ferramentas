@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brasil Portas</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Source+Sans+3:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --brown:#5c3d1e;--brown2:#7a5230;--brown3:#9c6b3c;
+  --warm:#f5efe6;--warm2:#ede2d4;--warm3:#ddd0be;
+  --gold:#c8902a;--gold2:#e0a83a;
+  --text:#2c1f0e;--muted:#8a7260;--border:#d4c4b0;
+  --white:#fff;--bg:#f2ece3;
+  --red:#c0392b;--green:#27ae60;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Source Sans 3',sans-serif;background:var(--bg);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+#root{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+
+/* ── HEADER ── */
+#hdr{
+  background:linear-gradient(135deg,var(--brown) 0%,var(--brown2) 60%,var(--brown3) 100%);
+  padding:0 20px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;
+  box-shadow:0 3px 16px rgba(92,61,30,.35);
+}
+.hdr-logo{display:flex;align-items:center;gap:14px;}
+.hdr-icon{width:38px;height:38px;background:rgba(255,255,255,.12);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;}
+.hdr-brand{display:flex;flex-direction:column;}
+.hdr-title{color:#fff;font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;letter-spacing:2px;line-height:1;}
+.hdr-sub{color:rgba(255,255,255,.55);font-size:10px;letter-spacing:1px;text-transform:uppercase;margin-top:2px;}
+.hdr-right{display:flex;gap:6px;align-items:center;}
+.tab-btn{border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:.5px;transition:all .15s;}
+.tab-btn.on{background:#fff;color:var(--brown);}
+.tab-btn.off{background:rgba(255,255,255,.12);color:#fff;}
+.tab-btn.off:hover{background:rgba(255,255,255,.22);}
+.print-btn{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#c0392b,#96281b);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:'Oswald',sans-serif;font-weight:600;font-size:13px;letter-spacing:.5px;box-shadow:0 2px 8px rgba(192,57,43,.35);transition:all .15s;}
+.print-btn:hover{transform:translateY(-1px);}
+
+/* ── LAYOUT ── */
+#layout{display:flex;flex:1;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+#sidebar{width:235px;flex-shrink:0;background:var(--white);border-right:1.5px solid var(--border);display:flex;flex-direction:column;overflow:hidden;}
+.sb-head{padding:14px 12px 10px;border-bottom:1px solid var(--border);}
+.sb-title{font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+.new-btn{width:100%;border:1.5px solid var(--brown3);border-radius:9px;background:transparent;color:var(--brown);padding:8px 12px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
+.new-btn:hover{background:var(--warm);border-color:var(--brown);}
+.sb-list{flex:1;overflow-y:auto;padding:8px 6px;}
+.sb-list::-webkit-scrollbar{width:4px;}
+.sb-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px;}
+.proj-item{border-radius:10px;padding:9px 10px;cursor:pointer;margin-bottom:3px;transition:background .15s;position:relative;}
+.proj-item:hover{background:var(--warm);}
+.proj-item.active{background:var(--warm2);border-left:3px solid var(--brown);padding-left:7px;}
+.proj-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Oswald',sans-serif;}
+.proj-sub{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.proj-del{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--border);font-size:15px;opacity:0;transition:opacity .15s;line-height:1;padding:2px;}
+.proj-item:hover .proj-del{opacity:1;}
+.proj-del:hover{color:var(--red);}
+.sb-empty{padding:20px 10px;text-align:center;color:var(--muted);font-size:12px;line-height:1.6;}
+
+/* ── MAIN ── */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#info-bar{background:var(--white);border-bottom:1.5px solid var(--border);padding:10px 20px;display:flex;gap:14px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+.lbl{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.6px;text-transform:uppercase;white-space:nowrap;}
+.fi{border:1.5px solid var(--border);border-radius:8px;padding:7px 11px;font-size:14px;font-weight:600;color:var(--text);background:var(--warm);font-family:'Source Sans 3',sans-serif;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:var(--brown);background:#fff;}
+.idiv{width:1px;height:30px;background:var(--border);flex-shrink:0;}
+.stat-lbl{font-size:10px;color:var(--muted);font-weight:700;text-align:right;text-transform:uppercase;letter-spacing:.4px;}
+.stat-val{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:var(--brown);text-align:right;line-height:1;}
+.auto-badge{font-size:10px;color:var(--brown);background:var(--warm2);padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;transition:all .3s;}
+
+#content{flex:1;overflow-y:auto;padding:20px;}
+#content::-webkit-scrollbar{width:6px;}
+#content::-webkit-scrollbar-track{background:var(--bg);}
+#content::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+
+/* ── EDIT GRID ── */
+.edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:16px;}
+.gc{background:var(--white);border-radius:14px;box-shadow:0 2px 12px rgba(92,61,30,.09);border:1.5px solid var(--border);padding:16px 14px 14px;display:flex;flex-direction:column;gap:10px;transition:box-shadow .2s;}
+.gc:hover{box-shadow:0 4px 20px rgba(92,61,30,.14);}
+.gc.has-sketch{border-color:var(--gold);box-shadow:0 2px 12px rgba(200,144,42,.2);}
+.gc-top{display:flex;align-items:center;justify-content:space-between;}
+.door-badge{background:linear-gradient(135deg,var(--brown),var(--brown2));color:#fff;border-radius:8px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;flex-shrink:0;}
+.gc-type-tag{font-family:'Oswald',sans-serif;font-size:11px;font-weight:600;color:var(--brown2);background:var(--warm2);border-radius:6px;padding:3px 8px;letter-spacing:.5px;flex:1;text-align:center;margin:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.gc-rm{background:none;border:none;cursor:pointer;color:var(--border);font-size:17px;transition:color .15s;padding:2px 4px;line-height:1;}
+.gc-rm:hover{color:var(--red);}
+
+/* door SVG preview */
+.gc-preview{display:flex;justify-content:center;align-items:center;min-height:90px;background:var(--warm);border-radius:8px;}
+
+/* dims */
+.gc-dims-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;}
+.gc-lbl{font-size:9px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:3px;}
+.gc-inp{width:100%;border:1.5px solid var(--border);border-radius:8px;padding:6px 9px;font-size:13px;font-family:'Source Sans 3',sans-serif;color:var(--text);background:var(--warm);outline:none;transition:border-color .15s;}
+.gc-inp:focus{border-color:var(--brown);background:#fff;}
+.gc-inp optgroup{font-weight:700;color:var(--muted);font-style:normal;font-size:11px;}
+.gc-inp option{font-size:12px;color:var(--text);}
+
+.gc-tag{border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;display:flex;align-items:center;gap:4px;}
+.gc-type-badge{background:#fff3e0;border:1px solid #ffcc80;color:#e65100;}
+.gc-nota-badge{background:#e8f4fd;border:1px solid #90caf9;color:#1565c0;}
+
+.sketch-btn{width:100%;border:1.5px dashed var(--gold);border-radius:8px;background:rgba(200,144,42,.04);color:var(--gold);padding:6px 10px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:12px;font-weight:600;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:5px;transition:all .15s;}
+.sketch-btn:hover{background:rgba(200,144,42,.1);border-color:var(--brown3);}
+.sketch-btn.has{background:rgba(200,144,42,.08);border-style:solid;}
+.sketch-thumb{width:100%;border-radius:6px;border:1px solid var(--border);display:block;background:var(--warm);}
+.rm-sketch-btn{width:100%;border:1.5px solid #ffccbc;border-radius:8px;background:#fff5f5;color:var(--red);padding:5px 8px;cursor:pointer;font-size:11px;font-family:'Source Sans 3',sans-serif;transition:all .15s;}
+.rm-sketch-btn:hover{background:#ffebee;}
+
+.add-card{border:2px dashed var(--border);border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:240px;color:var(--muted);transition:all .15s;background:rgba(92,61,30,.02);font-family:'Oswald',sans-serif;font-weight:600;font-size:14px;letter-spacing:.5px;}
+.add-card:hover{background:rgba(92,61,30,.06);border-color:var(--brown);color:var(--brown);}
+
+/* ── PREVIEW ── */
+.prev-wrap{background:var(--white);border-radius:14px;border:1.5px solid var(--border);overflow:hidden;}
+.prev-hdr{background:linear-gradient(135deg,var(--brown) 0%,var(--brown2) 60%,var(--brown3) 100%);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
+.prev-grid{padding:20px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+.pc{background:var(--white);border-radius:12px;border:1.5px solid var(--border);box-shadow:0 2px 10px rgba(92,61,30,.07);padding:13px 9px 11px;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.prev-ftr{background:var(--warm);border-top:1.5px solid var(--border);padding:13px 24px;display:flex;align-items:center;justify-content:space-between;}
+
+/* ── EMPTY ── */
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:12px;color:var(--muted);}
+
+/* ── MODAL PROJETO ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(44,31,14,.4);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.modal{background:#fff;border-radius:16px;border:1.5px solid var(--border);padding:28px 26px;width:360px;box-shadow:0 20px 60px rgba(44,31,14,.25);}
+.modal-title{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:var(--text);margin-bottom:20px;letter-spacing:.5px;}
+.m-lbl{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:4px;}
+.m-inp{width:100%;border:1.5px solid var(--border);border-radius:9px;padding:9px 12px;font-size:14px;font-family:'Source Sans 3',sans-serif;color:var(--text);background:var(--warm);outline:none;margin-bottom:14px;transition:border-color .15s;}
+.m-inp:focus{border-color:var(--brown);background:#fff;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+.mbtn{border:1.5px solid var(--border);border-radius:9px;padding:8px 18px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:14px;font-weight:600;background:transparent;color:var(--muted);transition:all .15s;}
+.mbtn:hover{background:var(--warm);border-color:var(--brown);color:var(--brown);}
+.mbtn.primary{background:linear-gradient(135deg,var(--brown),var(--brown2));color:#fff;border-color:var(--brown);}
+.mbtn.primary:hover{opacity:.9;transform:translateY(-1px);}
+
+/* ── SKETCH MODAL ── */
+#sketchModal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:2000;align-items:center;justify-content:center;padding:16px;}
+#sketchModal.open{display:flex;}
+.sketch-box{background:#fff;border-radius:18px;box-shadow:0 24px 80px rgba(0,0,0,.35);display:flex;flex-direction:column;width:min(700px,100%);max-height:95vh;overflow:hidden;}
+.sketch-toolbar{padding:10px 14px;background:#1a1208;display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.sk-title{color:#fff;font-family:'Oswald',sans-serif;font-weight:700;font-size:15px;letter-spacing:1px;flex:1;}
+.sk-btn{background:rgba(255,255,255,.1);border:none;color:#e8ddd0;border-radius:7px;padding:5px 11px;cursor:pointer;font-family:'Oswald',sans-serif;font-weight:600;font-size:12px;display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap;}
+.sk-btn:hover{background:rgba(255,255,255,.2);}
+.sk-btn.active{background:var(--brown2);color:#fff;}
+.sk-btn.danger{background:rgba(192,57,43,.2);color:#ff8a80;}
+.sk-btn.danger:hover{background:rgba(192,57,43,.4);}
+.sk-sep{width:1px;height:22px;background:rgba(255,255,255,.15);flex-shrink:0;}
+.sk-color{width:24px;height:24px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border .15s;}
+.sk-color.sel{border-color:#fff;}
+.sk-size-wrap{display:flex;align-items:center;gap:5px;}
+.sk-size-lbl{color:rgba(255,255,255,.5);font-size:10px;font-weight:600;}
+.sk-size{-webkit-appearance:none;width:55px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;outline:none;cursor:pointer;}
+.sk-size::-webkit-slider-thumb{-webkit-appearance:none;width:13px;height:13px;border-radius:50%;background:#fff;cursor:pointer;}
+.sketch-hint{background:#faf5ec;padding:6px 14px;font-size:11px;color:var(--brown2);font-weight:600;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.sketch-canvas-wrap{flex:1;overflow:hidden;position:relative;background:#fff;cursor:crosshair;min-height:280px;}
+#sketchCanvas{display:block;touch-action:none;}
+.sketch-footer{padding:10px 14px;background:var(--warm);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.sketch-dims-lbl{font-size:12px;color:var(--muted);font-weight:600;}
+.sketch-footer-btns{display:flex;gap:8px;}
+.sfbtn{border:1.5px solid var(--border);border-radius:8px;padding:7px 16px;cursor:pointer;font-family:'Oswald',sans-serif;font-size:13px;font-weight:600;background:transparent;color:var(--muted);transition:all .15s;}
+.sfbtn:hover{background:var(--warm2);border-color:var(--brown);color:var(--brown);}
+.sfbtn.ok{background:linear-gradient(135deg,var(--brown),var(--brown2));color:#fff;border-color:var(--brown);}
+.sfbtn.ok:hover{opacity:.9;}
+
+/* ── PRINT ── */
+@media print {
+  @page{size:A4 portrait;margin:12mm;}
+  body,#root{height:auto!important;overflow:visible!important;background:#fff!important;}
+  #hdr,#sidebar,#info-bar,.modal-overlay,#sketchModal,.no-print{display:none!important;}
+  #layout{display:block!important;}
+  #main{display:block!important;overflow:visible!important;}
+  #content{overflow:visible!important;padding:0!important;}
+  .edit-grid,.add-card{display:none!important;}
+  .prev-wrap{border:none!important;border-radius:0!important;box-shadow:none!important;}
+  .prev-hdr{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;border-radius:0!important;}
+  .prev-grid{grid-template-columns:repeat(4,1fr)!important;gap:10px!important;padding:14px!important;}
+  .pc{box-shadow:none!important;break-inside:avoid;page-break-inside:avoid;}
+  .prev-ftr{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon">🚪</div>
+      <div class="hdr-brand">
+        <div class="hdr-title">BRASIL PORTAS</div>
+        <div class="hdr-sub">Gestão de projetos de portas</div>
+      </div>
+    </div>
+    <div class="hdr-right" id="hdr-right"></div>
+  </div>
+  <div id="layout">
+    <div id="sidebar">
+      <div class="sb-head">
+        <div class="sb-title">Projetos salvos</div>
+        <button class="new-btn" onclick="openNewModal()">
+          <span style="font-size:18px;line-height:1;">+</span> Novo projeto
+        </button>
+      </div>
+      <div class="sb-list" id="sb-list"></div>
+    </div>
+    <div id="main">
+      <div id="info-bar"></div>
+      <div id="content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SKETCH MODAL -->
+<div id="sketchModal">
+  <div class="sketch-box">
+    <div class="sketch-toolbar">
+      <span class="sk-title">✏️ DESENHAR PORTA</span>
+      <div class="sk-btn active" id="sk-tool-draw" onclick="setTool('draw')">✏️ Livre</div>
+      <div class="sk-btn" id="sk-tool-line" onclick="setTool('line')">📏 Reta</div>
+      <div class="sk-btn" id="sk-tool-rect" onclick="setTool('rect')">▭ Ret.</div>
+      <div class="sk-btn" id="sk-tool-text" onclick="setTool('text')">T Texto</div>
+      <div class="sk-btn" id="sk-tool-move" onclick="setTool('move')">✥ Mover</div>
+      <div class="sk-btn" onclick="changeFontSize(-2)">A⁻</div>
+      <div class="sk-btn" onclick="changeFontSize(+2)">A⁺</div>
+      <div class="sk-btn" onclick="rotateText(-15)">↺</div>
+      <div class="sk-btn" onclick="rotateText(+15)">↻</div>
+      <div class="sk-btn" id="sk-tool-erase" onclick="setTool('erase')">⬜ Apagar</div>
+      <div class="sk-sep"></div>
+      <div class="sk-color sel" style="background:#5c3d1e;" onclick="setColor('#5c3d1e',this)"></div>
+      <div class="sk-color" style="background:#c0392b;" onclick="setColor('#c0392b',this)"></div>
+      <div class="sk-color" style="background:#1565c0;" onclick="setColor('#1565c0',this)"></div>
+      <div class="sk-color" style="background:#222;" onclick="setColor('#222',this)"></div>
+      <div class="sk-sep"></div>
+      <div class="sk-size-wrap">
+        <span class="sk-size-lbl">Esp.</span>
+        <input type="range" class="sk-size" id="skSize" min="1" max="20" value="3">
+      </div>
+      <div class="sk-sep"></div>
+      <div class="sk-size-wrap">
+        <span class="sk-size-lbl">Grade</span>
+        <select id="skGridSize" onchange="redrawGrid()" style="background:rgba(255,255,255,.1);border:none;color:#e8ddd0;border-radius:5px;padding:3px 5px;font-size:11px;cursor:pointer;">
+          <option value="10">10px</option>
+          <option value="20" selected>20px</option>
+          <option value="40">40px</option>
+          <option value="0">OFF</option>
+        </select>
+      </div>
+      <div class="sk-sep"></div>
+      <div class="sk-btn danger" onclick="clearCanvas()">🗑 Limpar</div>
+      <div class="sk-btn danger" onclick="undoSketch()">↩ Desfazer</div>
+    </div>
+    <div class="sketch-hint">
+      <span>💡</span><span id="skHintText">Desenhe livremente o esquema da porta, parede e vão.</span>
+    </div>
+    <div class="sketch-canvas-wrap" id="skCanvasWrap" style="position:relative;">
+      <canvas id="sketchCanvas"></canvas>
+      <div id="skTextLayer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+    </div>
+    <div class="sketch-footer">
+      <div class="sketch-dims-lbl" id="skDimsLabel">Porta: — × — mm</div>
+      <div class="sketch-footer-btns">
+        <button class="sfbtn" onclick="closeSketch()">Cancelar</button>
+        <button class="sfbtn ok" onclick="saveSketch()">✓ Salvar desenho</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DOOR TYPES
+// ══════════════════════════════════════════════
+const DOOR_GROUPS = [
+  { label: "PORTA INTERNA", types: [
+    "Porta Interna Lisa",
+    "Porta Interna Semi-oca",
+    "Porta Interna Maciça",
+    "Porta Interna com Friso",
+    "Porta Interna de Vidro",
+    "Porta Interna Acústica",
+  ]},
+  { label: "PORTA EXTERNA", types: [
+    "Porta Externa Lisa",
+    "Porta Externa Maciça",
+    "Porta Externa com Friso",
+    "Porta External Blindada",
+    "Porta Externa de Alumínio",
+    "Porta Externa de Ferro",
+  ]},
+  { label: "TIPO DE ABERTURA", types: [
+    "Porta de Giro",
+    "Porta de Correr",
+    "Porta Pivotante",
+    "Porta Dupla",
+    "Porta de Correr Embutida",
+    "Porta Camarão (vai-e-vem)",
+  ]},
+  { label: "SERVIÇOS", types: [
+    "Manutenção",
+    "Reparo",
+    "Instalação",
+    "Troca de Dobradiças",
+    "Troca de Fechadura",
+    "Nivelamento",
+    "Rodapé",
+    "Batente / Marco",
+    "Guarnição",
+    "Aduela",
+  ]},
+  { label: "ACABAMENTOS", types: [
+    "Madeira Natural",
+    "MDF Laminado",
+    "MDF Pintado",
+    "Fórmica",
+    "Aço Inox",
+    "Alumínio Anodizado",
+    "PVC",
+  ]},
+];
+
+function buildDoorOptions(sel){
+  let h = '<option value="">— Selecione o tipo —</option>';
+  DOOR_GROUPS.forEach(g=>{
+    h += `<optgroup label="── ${g.label} ──">`;
+    g.types.forEach(t=> h+=`<option value="${t}" ${t===sel?'selected':''}>${t}</option>`);
+    h += '</optgroup>';
+  });
+  return h;
+}
+
+// door SVG preview
+function doorSVG(lp, vl, va, tipo, lado){
+  // Technical plan view (top-down) like architectural drawing
+  const SW = 90;  // svg width
+  const SH = 110; // svg height
+  const wallT = lp > 0 ? Math.max(8, Math.min(18, Math.round(lp / 30))) : 10; // wall thickness px
+  const doorW = SW - wallT * 2 - 4; // door leaf width
+  const isCorrer = tipo && tipo.toLowerCase().includes('correr');
+  const isPivot  = tipo && tipo.toLowerCase().includes('pivotante');
+  const isDupla  = tipo && tipo.toLowerCase().includes('dupla');
+  const isEsq    = lado === 'Esquerdo';
+
+  // In plan view:
+  // walls on top and bottom (horizontal cuts)
+  // door leaf shown as thin rectangle
+  // swing arc as quarter circle
+
+  const wallY1 = 8;            // top wall top
+  const wallY2 = wallY1 + wallT; // top wall bottom (= door opening start)
+  const openingX1 = wallT + 2; // left jamb
+  const openingX2 = SW - wallT - 2; // right jamb
+  const openingW = openingX2 - openingX1;
+  const leafH = 3;             // door leaf thickness in plan
+  const leafY = wallY2;        // door leaf sits at opening
+  const arcR  = openingW;      // swing radius = door width
+
+  // hinge corner
+  const hx = isEsq ? openingX1 : openingX2;
+  // swing end point (quarter arc)
+  const arcEndX = isEsq ? openingX1 + arcR : openingX2 - arcR;
+  const arcEndY = wallY2 + arcR;
+  // arc sweep: isEsq = sweep right (1), isDir = sweep left (0)
+  const sweep = isEsq ? 1 : 0;
+
+  // Labels
+  const larpLabel = vl > 0 ? vl + '' : '—';
+  const altLabel  = va > 0 ? va + '' : '—';
+  const lpLabel   = lp > 0 ? lp + '' : '—';
+
+  let content = '';
+
+  if (isCorrer) {
+    // SLIDING DOOR: plan shows door in wall pocket + track
+    const trackY = wallY2 + 6;
+    const pocketW = openingW * 0.5;
+    content += `
+    <!-- wall top -->
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <!-- pocket left -->
+    <rect x="${openingX1}" y="${wallY1}" width="${pocketW}" height="${wallT}" fill="#e8e0d5" stroke="#9c6b3c" stroke-width=".8" stroke-dasharray="2,2"/>
+    <!-- opening -->
+    <rect x="${openingX1+pocketW}" y="${wallY2-1}" width="${openingW-pocketW}" height="2" fill="none" stroke="#5c3d1e" stroke-width=".8"/>
+    <!-- track -->
+    <line x1="${openingX1}" y1="${trackY}" x2="${openingX2}" y2="${trackY}" stroke="#9c6b3c" stroke-width="1.5"/>
+    <!-- door leaf (sliding, partially open) -->
+    <rect x="${openingX1+pocketW-2}" y="${wallY1+1}" width="${openingW-pocketW+2}" height="${wallT-2}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <!-- wall bottom (floor line) -->
+    <line x1="0" y1="${wallY2+14}" x2="${SW}" y2="${wallY2+14}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <!-- arrow -->
+    <path d="M${openingX1+pocketW+4} ${wallY2+8} L${openingX1+4} ${wallY2+8}" stroke="#c8902a" stroke-width="1.2" fill="none" marker-end="url(#arrow)"/>
+    <!-- CORRER label -->
+    <text x="${SW/2}" y="${wallY2+26}" text-anchor="middle" font-size="7" font-family="Oswald,sans-serif" fill="#7a5230" font-weight="600">CORRER</text>
+    `;
+  } else if (isPivot) {
+    const pivotX = openingX1 + openingW / 2;
+    const pivotY = wallY2;
+    const pr = openingW / 2;
+    content += `
+    <!-- wall top -->
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <!-- opening gap -->
+    <!-- left half leaf -->
+    <rect x="${openingX1}" y="${wallY2}" width="${openingW/2 - 1}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <!-- right half leaf -->
+    <rect x="${pivotX+1}" y="${wallY2}" width="${openingW/2 - 1}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <!-- pivot point -->
+    <circle cx="${pivotX}" cy="${wallY2+1}" r="2.5" fill="#c8902a" stroke="#7a5230" stroke-width=".8"/>
+    <!-- symmetric arc -->
+    <path d="M${openingX1} ${wallY2+leafH} A${pr} ${pr} 0 0 1 ${openingX1+openingW} ${wallY2+leafH}" fill="rgba(200,144,42,.07)" stroke="#c8902a" stroke-width="1" stroke-dasharray="3,2"/>
+    <!-- floor -->
+    <line x1="0" y1="${wallY2+pr+8}" x2="${SW}" y2="${wallY2+pr+8}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <!-- PIVOTANTE label -->
+    <text x="${SW/2}" y="${wallY2+pr+20}" text-anchor="middle" font-size="7" font-family="Oswald,sans-serif" fill="#7a5230" font-weight="600">PIVOTANTE</text>
+    `;
+  } else if (isDupla) {
+    const half = openingW / 2;
+    const hx1 = openingX1; const hx2 = openingX2;
+    const arc1end = openingX1 + half; const arc2end = openingX2 - half;
+    content += `
+    <!-- wall top -->
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <!-- left leaf -->
+    <rect x="${openingX1}" y="${wallY2}" width="${half}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <!-- right leaf -->
+    <rect x="${openingX1+half}" y="${wallY2}" width="${half}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <!-- left arc -->
+    <path d="M${openingX1} ${wallY2+leafH} A${half} ${half} 0 0 1 ${arc1end} ${wallY2+leafH+half}" fill="rgba(200,144,42,.06)" stroke="#c8902a" stroke-width="1" stroke-dasharray="3,2"/>
+    <!-- right arc -->
+    <path d="M${openingX2} ${wallY2+leafH} A${half} ${half} 0 0 0 ${arc2end} ${wallY2+leafH+half}" fill="rgba(200,144,42,.06)" stroke="#c8902a" stroke-width="1" stroke-dasharray="3,2"/>
+    <!-- hinge marks -->
+    <circle cx="${openingX1}" cy="${wallY2+2}" r="1.5" fill="#9c6b3c"/>
+    <circle cx="${openingX2}" cy="${wallY2+2}" r="1.5" fill="#9c6b3c"/>
+    <!-- floor -->
+    <line x1="0" y1="${wallY2+half+10}" x2="${SW}" y2="${wallY2+half+10}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <!-- DUPLA label -->
+    <text x="${SW/2}" y="${wallY2+half+22}" text-anchor="middle" font-size="7" font-family="Oswald,sans-serif" fill="#7a5230" font-weight="600">DUPLA</text>
+    `;
+  } else {
+    // Standard swing door plan view
+    content += `
+    <!-- wall top with hatch fill -->
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <!-- hatch lines on wall -->
+    <line x1="4" y1="${wallY1}" x2="${wallT+6}" y2="${wallY2}" stroke="#9c8a7a" stroke-width=".5"/>
+    <line x1="10" y1="${wallY1}" x2="${wallT+12}" y2="${wallY2}" stroke="#9c8a7a" stroke-width=".5"/>
+    <!-- jamb left -->
+    <rect x="${openingX1-wallT}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <!-- jamb right -->
+    <rect x="${openingX2}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <!-- door leaf -->
+    <rect x="${openingX1}" y="${wallY2}" width="${openingW}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.5"/>
+    <!-- hinge dot -->
+    <circle cx="${hx}" cy="${wallY2+leafH/2}" r="2" fill="#9c6b3c" stroke="#5c3d1e" stroke-width=".5"/>
+    <!-- swing arc (quarter circle) -->
+    <path d="M${openingX1} ${wallY2+leafH} A${arcR} ${arcR} 0 0 ${sweep} ${arcEndX} ${arcEndY}" fill="rgba(200,144,42,.07)" stroke="#c8902a" stroke-width="1.2" stroke-dasharray="4,2.5"/>
+    <!-- arc end tick -->
+    <line x1="${arcEndX-3}" y1="${arcEndY}" x2="${arcEndX+3}" y2="${arcEndY}" stroke="#c8902a" stroke-width="1.2"/>
+    <!-- floor line -->
+    <line x1="0" y1="${arcEndY+6}" x2="${SW}" y2="${arcEndY+6}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <!-- dimension: opening width -->
+    <line x1="${openingX1}" y1="${arcEndY+1}" x2="${openingX1}" y2="${arcEndY+5}" stroke="#5c3d1e" stroke-width=".8"/>
+    <line x1="${openingX2}" y1="${arcEndY+1}" x2="${openingX2}" y2="${arcEndY+5}" stroke="#5c3d1e" stroke-width=".8"/>
+    <line x1="${openingX1}" y1="${arcEndY+3}" x2="${openingX2}" y2="${arcEndY+3}" stroke="#5c3d1e" stroke-width=".8"/>
+    <text x="${SW/2}" y="${arcEndY+14}" text-anchor="middle" font-size="7.5" font-family="Oswald,sans-serif" fill="#5c3d1e" font-weight="700">${larpLabel}</text>
+    <!-- lado label -->
+    ${lado?`<text x="${hx > SW/2 ? openingX1+5 : openingX2-5}" y="${wallY2+leafH+12}" text-anchor="${hx > SW/2 ? 'start':'end'}" font-size="7" font-family="Oswald,sans-serif" fill="#c8902a" font-weight="600">${isEsq?'⬅':'➡'} ${lado.toUpperCase()}</text>`:''}
+    `;
+  }
+
+  return `<svg width="${SW}" height="${SH}" viewBox="0 0 ${SW} ${SH}" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
+        <path d="M0,0 L6,3 L0,6 Z" fill="#c8902a"/>
+      </marker>
+    </defs>
+    ${content}
+    <!-- NORTH indicator / scale label -->
+    <text x="${SW-2}" y="7" text-anchor="end" font-size="6" font-family="Oswald,sans-serif" fill="#9c6b3c" opacity=".7">PLANTA</text>
+  </svg>`;
+}
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const STORE='brasil_portas_v1', LAST='brasil_portas_last_v1';
+let projects=[], activeId=null, tab='edit', gid=100, saveTimer=null, modal=null;
+
+function loadData(){
+  try{const d=localStorage.getItem(STORE);if(d)projects=JSON.parse(d);}catch(e){}
+  try{const l=localStorage.getItem(LAST);if(l)activeId=l;}catch(e){}
+  if(!activeId||!projects.find(p=>p.id===activeId)) activeId=projects[0]?.id||null;
+}
+function persist(){
+  try{localStorage.setItem(STORE,JSON.stringify(projects));localStorage.setItem(LAST,activeId||'');}catch(e){}
+}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{persist();flashSaved();},500);}
+function flashSaved(){
+  const el=document.getElementById('auto-badge');if(!el)return;
+  el.textContent='✓ salvo';el.style.background='#d4edda';el.style.color='#155724';
+  setTimeout(()=>{if(el){el.textContent='auto-save';el.style.background='var(--warm2)';el.style.color='var(--brown)';}},1800);
+}
+function newProject(client,obra){
+  return{id:'p'+Date.now()+Math.random().toString(36).slice(2),client:client||'',obra:obra||'',doors:[],createdAt:Date.now()};
+}
+function active(){return projects.find(p=>p.id===activeId)||null;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderAll(){renderHdr();renderSB();renderInfoBar();renderContent();}
+
+function renderHdr(){
+  const p=active();
+  document.getElementById('hdr-right').innerHTML=`
+    <button class="tab-btn ${tab==='edit'?'on':'off'}" onclick="setTab('edit')">✏️ Editar</button>
+    <button class="tab-btn ${tab==='preview'?'on':'off'}" onclick="setTab('preview')">👁️ Visualizar</button>
+    ${tab==='preview'&&p?`<button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>`:''}
+  `;
+}
+
+function renderSB(){
+  const el=document.getElementById('sb-list');
+  if(!projects.length){el.innerHTML='<div class="sb-empty">Nenhum projeto ainda.<br>Crie o primeiro acima.</div>';return;}
+  el.innerHTML=projects.map(p=>`
+    <div class="proj-item ${p.id===activeId?'active':''}" onclick="selectProj('${p.id}')">
+      <div class="proj-name">${esc(p.client)||'Sem nome'}</div>
+      <div class="proj-sub">${esc(p.obra)||'Sem local'} · ${(p.doors||[]).length} porta(s)</div>
+      <button class="proj-del" onclick="delProj(event,'${p.id}')" title="Excluir">✕</button>
+    </div>`).join('');
+}
+
+function renderInfoBar(){
+  const p=active(), el=document.getElementById('info-bar');
+  if(!p){el.innerHTML='';return;}
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;"><span class="lbl">Cliente</span>
+      <input class="fi" style="width:175px;" value="${esc(p.client)}" oninput="updField('client',this.value)" placeholder="Nome do cliente">
+    </div>
+    <div class="idiv"></div>
+    <div style="display:flex;align-items:center;gap:8px;"><span class="lbl">Local / Obra</span>
+      <input class="fi" style="width:220px;" value="${esc(p.obra)}" oninput="updField('obra',this.value)" placeholder="Endereço ou nome da obra">
+    </div>
+    <div style="margin-left:auto;display:flex;gap:14px;align-items:center;">
+      <span class="auto-badge" id="auto-badge">auto-save</span>
+      <div><div class="stat-lbl">Portas</div><div class="stat-val">${(p.doors||[]).length}</div></div>
+    </div>`;
+}
+
+function renderContent(){
+  const p=active(), el=document.getElementById('content');
+  if(!p){
+    el.innerHTML=`<div class="empty">
+      <span style="font-size:48px;opacity:.2;">🚪</span>
+      <div style="font-size:15px;font-weight:700;font-family:'Oswald',sans-serif;color:var(--muted);letter-spacing:.5px;">SELECIONE OU CRIE UM PROJETO</div>
+      <div style="font-size:12px;color:var(--muted);">Use a barra lateral para navegar</div>
+    </div>`;return;
+  }
+  el.innerHTML = tab==='edit' ? buildEdit(p) : buildPreview(p);
+}
+
+function buildEdit(p){
+  return `<div class="edit-grid">
+    ${(p.doors||[]).map((d,i)=>`
+      <div class="gc${d.sketch?' has-sketch':''}">
+        <div class="gc-top">
+          <div class="door-badge">${i+1}</div>
+          <div class="gc-type-tag">${esc(d.tipo)||'— tipo —'}</div>
+          <button class="gc-rm" onclick="rmDoor('${p.id}',${d.id})">✕</button>
+        </div>
+
+        <!-- preview -->
+        <div class="gc-preview">
+          ${d.sketch
+            ? `<img class="sketch-thumb" src="${d.sketch}" style="max-height:140px;object-fit:contain;" alt="Esboço">`
+            : doorSVG(d.lp,d.vl,d.va,d.tipo,d.lado)
+          }
+        </div>
+
+        <!-- 3 medidas -->
+        ${!d.sketch?`<div class="gc-dims-3">
+          <label>
+            <span class="gc-lbl">Esp. Parede</span>
+            <input class="gc-inp" type="number" value="${d.lp}" placeholder="mm" oninput="updDoor('${p.id}',${d.id},'lp',+this.value)">
+          </label>
+          <label>
+            <span class="gc-lbl">Larg. Vão</span>
+            <input class="gc-inp" type="number" value="${d.vl}" placeholder="mm" oninput="updDoor('${p.id}',${d.id},'vl',+this.value)">
+          </label>
+          <label>
+            <span class="gc-lbl">Alt. Vão</span>
+            <input class="gc-inp" type="number" value="${d.va}" placeholder="mm" oninput="updDoor('${p.id}',${d.id},'va',+this.value)">
+          </label>
+        </div>`:''}
+
+        <!-- lado abertura -->
+        <label>
+          <span class="gc-lbl">Lado de Abertura</span>
+          <select class="gc-inp" style="cursor:pointer;" onchange="updDoor('${p.id}',${d.id},'lado',this.value)">
+            <option value="" ${d.lado===''?'selected':''}>— Selecione o lado —</option>
+            <option value="Direito" ${d.lado==='Direito'?'selected':''}>🚪 Direito</option>
+            <option value="Esquerdo" ${d.lado==='Esquerdo'?'selected':''}>🚪 Esquerdo</option>
+          </select>
+        </label>
+        ${d.lado?`<div class="gc-tag" style="background:${d.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${d.lado==='Direito'?'#a5d6a7':'#90caf9'};color:${d.lado==='Direito'?'#2e7d32':'#1565c0'};"><span>${d.lado==='Direito'?'→':'←'}</span>Abertura ${d.lado}</div>`:''}
+
+        <!-- tipo -->
+        <label>
+          <span class="gc-lbl">Tipo / Serviço</span>
+          <select class="gc-inp" style="cursor:pointer;" onchange="updDoor('${p.id}',${d.id},'tipo',this.value)">
+            ${buildDoorOptions(d.tipo)}
+          </select>
+        </label>
+        ${d.tipo?`<div class="gc-tag gc-type-badge"><span>🚪</span>${esc(d.tipo)}</div>`:''}
+
+        <!-- observação -->
+        <label>
+          <span class="gc-lbl">Observação</span>
+          <input class="gc-inp" type="text" value="${esc(d.nota||'')}" placeholder="Ex: lado da dobradiça, cor, acabamento…" oninput="updDoor('${p.id}',${d.id},'nota',this.value)">
+        </label>
+        ${d.nota?`<div class="gc-tag gc-nota-badge"><span>📝</span>${esc(d.nota)}</div>`:''}
+
+        <!-- sketch -->
+        <button class="sketch-btn ${d.sketch?'has':''}" onclick="openSketch('${p.id}',${d.id},${d.vl},${d.va})">
+          ${d.sketch?'✏️ Editar desenho':'✏️ Desenhar esquema'}
+        </button>
+        ${d.sketch?`<button class="rm-sketch-btn" onclick="clearSketch('${p.id}',${d.id})">🗑 Remover desenho</button>`:''}
+      </div>`).join('')}
+
+    <div class="add-card" onclick="addDoor('${p.id}')">
+      <span style="font-size:36px;line-height:1;">🚪</span>
+      <span>Adicionar porta</span>
+    </div>
+  </div>`;
+}
+
+function buildPreview(p){
+  return `<div class="prev-wrap">
+    <div class="prev-hdr">
+      <div>
+        <div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:1px;font-weight:700;text-transform:uppercase;">Local / Obra</div>
+        <div style="color:#fff;font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;letter-spacing:1px;">${esc(p.obra)||'—'}</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="color:rgba(255,255,255,.55);font-size:10px;letter-spacing:1px;font-weight:700;text-transform:uppercase;">Cliente</div>
+        <div style="color:#fff;font-family:'Oswald',sans-serif;font-weight:700;font-size:24px;letter-spacing:1px;">${esc(p.client)||'—'}</div>
+      </div>
+    </div>
+    <div class="prev-grid">
+      ${(p.doors||[]).map((d,i)=>`
+        <div class="pc">
+          <div class="door-badge" style="width:26px;height:26px;font-size:13px;">${i+1}</div>
+          ${d.sketch
+            ? `<img src="${d.sketch}" style="width:100%;max-height:120px;object-fit:contain;border-radius:4px;" alt="Esboço">`
+            : `<div style="padding:6px 0;">${doorSVG(d.lp,d.vl,d.va,d.tipo,d.lado)}</div>`
+          }
+          <!-- medidas -->
+          ${!d.sketch?`<div style="display:flex;flex-direction:column;gap:2px;width:100%;">
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-weight:700;">
+              <span>Parede</span><span style="color:var(--brown);font-weight:700;">${d.lp||'—'} mm</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-weight:700;">
+              <span>Larg.</span><span style="color:var(--brown);font-weight:700;">${d.vl||'—'} mm</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--muted);font-weight:700;">
+              <span>Alt.</span><span style="color:var(--brown);font-weight:700;">${d.va||'—'} mm</span>
+            </div>
+          </div>`:''}
+          ${d.lado?`<div style="background:${d.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${d.lado==='Direito'?'#a5d6a7':'#90caf9'};border-radius:5px;padding:2px 5px;font-size:8px;color:${d.lado==='Direito'?'#2e7d32':'#1565c0'};font-weight:700;text-align:center;width:100%;line-height:1.3;">${d.lado==='Direito'?'→':'←'} ${d.lado}</div>`:''}
+          ${d.tipo?`<div style="background:#fff3e0;border:1px solid #ffcc80;border-radius:5px;padding:2px 5px;font-size:8px;color:#e65100;font-weight:700;text-align:center;width:100%;line-height:1.3;">🚪 ${esc(d.tipo)}</div>`:''}
+          ${d.nota?`<div style="background:#e8f4fd;border:1px solid #90caf9;border-radius:5px;padding:2px 5px;font-size:8px;color:#1565c0;font-weight:600;text-align:center;width:100%;line-height:1.3;">📝 ${esc(d.nota)}</div>`:''}
+          ${d.sketch?`<div style="background:#faf5ec;border:1px solid var(--gold);border-radius:5px;padding:2px 5px;font-size:8px;color:var(--brown);font-weight:700;text-align:center;width:100%;">✏️ Com esboço</div>`:''}
+        </div>`).join('')}
+    </div>
+    <div class="prev-ftr">
+      <div style="display:flex;gap:12px;align-items:center;">
+        <span style="font-size:20px;">🚪</span>
+        <span style="font-size:12px;color:var(--muted);font-weight:600;">Projeto de Portas</span>
+        <span style="font-size:11px;color:var(--muted);">* Medidas em milímetros (mm)</span>
+      </div>
+      <div style="text-align:right;">
+        <div class="stat-lbl">Total</div>
+        <div style="font-family:'Oswald',sans-serif;font-weight:700;font-size:18px;color:var(--brown);">${(p.doors||[]).length} porta(s)</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════
+function selectProj(id){activeId=id;tab='edit';persist();renderAll();}
+function setTab(t){tab=t;renderAll();}
+function updField(f,v){const p=active();if(!p)return;p[f]=v;renderSB();scheduleSave();}
+function updDoor(pid,id,f,v){
+  const p=projects.find(x=>x.id===pid);if(!p)return;
+  p.doors=p.doors.map(d=>d.id===id?{...d,[f]:v}:d);
+  renderInfoBar();scheduleSave();
+}
+function rmDoor(pid,id){
+  const p=projects.find(x=>x.id===pid);if(!p)return;
+  p.doors=p.doors.filter(d=>d.id!==id);renderAll();scheduleSave();
+}
+function addDoor(pid){
+  const p=projects.find(x=>x.id===pid);if(!p)return;
+  p.doors=[...p.doors,{id:gid++,lp:100,vl:800,va:2100,tipo:'',lado:'',nota:'',sketch:null}];
+  renderAll();scheduleSave();
+}
+function clearSketch(pid,id){
+  const p=projects.find(x=>x.id===pid);if(!p)return;
+  p.doors=p.doors.map(d=>d.id===id?{...d,sketch:null}:d);renderAll();scheduleSave();
+}
+function delProj(e,id){
+  e.stopPropagation();
+  if(!confirm('Excluir este projeto permanentemente?'))return;
+  projects=projects.filter(p=>p.id!==id);
+  if(activeId===id)activeId=projects.length?projects[0].id:null;
+  persist();renderAll();
+}
+
+// ── MODAL ──
+function openNewModal(){
+  if(modal)modal.remove();
+  modal=document.createElement('div');modal.className='modal-overlay';
+  modal.innerHTML=`<div class="modal">
+    <div class="modal-title">🚪 Novo projeto</div>
+    <label class="m-lbl">Cliente</label>
+    <input class="m-inp" id="mc" placeholder="Nome do cliente" autofocus>
+    <label class="m-lbl">Local / Obra</label>
+    <input class="m-inp" id="mo" placeholder="Endereço ou nome da obra">
+    <div class="modal-btns">
+      <button class="mbtn" onclick="closeModal()">Cancelar</button>
+      <button class="mbtn primary" onclick="createProj()">Criar projeto</button>
+    </div>
+  </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('mc')?.focus(),50);
+  document.addEventListener('keydown',handleEsc);
+}
+function closeModal(){if(modal){modal.remove();modal=null;}document.removeEventListener('keydown',handleEsc);}
+function handleEsc(e){if(e.key==='Escape'){closeModal();closeSketch();}}
+function createProj(){
+  const c=document.getElementById('mc')?.value.trim()||'';
+  const o=document.getElementById('mo')?.value.trim()||'';
+  if(!c&&!o){alert('Preencha pelo menos o nome do cliente ou obra.');return;}
+  const p=newProject(c||'Sem nome',o||'Sem local');
+  p.doors=[{id:gid++,lp:100,vl:800,va:2100,tipo:'',lado:'',nota:'',sketch:null}];
+  projects.unshift(p);activeId=p.id;tab='edit';
+  persist();closeModal();renderAll();
+}
+
+// ══════════════════════════════════════════════
+//  SKETCH ENGINE
+// ══════════════════════════════════════════════
+let skPid=null,skDid=null,skVL=0,skVA=0;
+let skTool='draw',skColor='#5c3d1e',skSize=3;
+let skDrawing=false,skStartX=0,skStartY=0,skSnapshot=null;
+let skHistory=[];
+let skTexts=[],skDragTxt=null,skDragOx=0,skDragOy=0,skSelectedTxt=null;
+let skTxtCnt=0;
+
+const skModal=document.getElementById('sketchModal');
+const skCanvas=document.getElementById('sketchCanvas');
+const skCtx=skCanvas.getContext('2d');
+const skTextLayer=document.getElementById('skTextLayer');
+
+function openSketch(pid,did,vl,va){
+  skPid=pid;skDid=did;skVL=vl;skVA=va;
+  skTexts=[];skTextLayer.innerHTML='';
+  const wrap=document.getElementById('skCanvasWrap');
+  const cw=Math.max(wrap.clientWidth||640,400);
+  const ch=Math.max(280,Math.round(cw*(va/Math.max(vl,1))*.5));
+  skCanvas.width=cw;skCanvas.height=Math.min(ch,500);
+  skTextLayer.style.width=skCanvas.width+'px';skTextLayer.style.height=skCanvas.height+'px';
+  const p=projects.find(x=>x.id===pid);
+  const d=p?.doors.find(x=>x.id===did);
+  skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
+  drawGrid();
+  if(d?.sketch){
+    const img=new Image();
+    img.onload=()=>{skCtx.drawImage(img,0,0,skCanvas.width,skCanvas.height);pushHist();};
+    img.src=d.sketch;
+  } else {pushHist();}
+  document.getElementById('skDimsLabel').textContent='Vão: '+vl+' × '+va+' mm';
+  skModal.classList.add('open');
+  setTool('draw');
+}
+
+function getGridStep(){const s=document.getElementById('skGridSize');return s?parseInt(s.value)||0:20;}
+function drawGrid(){
+  const step=getGridStep();if(!step)return;
+  skCtx.save();
+  skCtx.strokeStyle='rgba(150,120,80,.25)';skCtx.lineWidth=.5;
+  for(let x=0;x<=skCanvas.width;x+=step){skCtx.beginPath();skCtx.moveTo(x,0);skCtx.lineTo(x,skCanvas.height);skCtx.stroke();}
+  for(let y=0;y<=skCanvas.height;y+=step){skCtx.beginPath();skCtx.moveTo(0,y);skCtx.lineTo(skCanvas.width,y);skCtx.stroke();}
+  const major=step*5;
+  skCtx.strokeStyle='rgba(120,90,50,.5)';skCtx.lineWidth=1;
+  for(let x=0;x<=skCanvas.width;x+=major){skCtx.beginPath();skCtx.moveTo(x,0);skCtx.lineTo(x,skCanvas.height);skCtx.stroke();}
+  for(let y=0;y<=skCanvas.height;y+=major){skCtx.beginPath();skCtx.moveTo(0,y);skCtx.lineTo(skCanvas.width,y);skCtx.stroke();}
+  skCtx.fillStyle='rgba(120,90,50,.6)';skCtx.font='9px sans-serif';skCtx.textAlign='left';
+  for(let x=major;x<skCanvas.width;x+=major)skCtx.fillText(x+'',x+2,10);
+  for(let y=major;y<skCanvas.height;y+=major)skCtx.fillText(y+'',2,y-2);
+  skCtx.restore();
+}
+function redrawGrid(){
+  if(skHistory.length)skCtx.putImageData(skHistory[skHistory.length-1],0,0);
+  else{skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);drawGrid();pushHist();}
+}
+function pushHist(){skHistory.push(skCtx.getImageData(0,0,skCanvas.width,skCanvas.height));if(skHistory.length>40)skHistory.shift();}
+function undoSketch(){if(skHistory.length<=1)return;skHistory.pop();skCtx.putImageData(skHistory[skHistory.length-1],0,0);}
+
+function closeSketch(){skModal.classList.remove('open');skHistory=[];skTexts=[];skTextLayer.innerHTML='';}
+
+function saveSketch(){
+  const scale=2;
+  const exp=document.createElement('canvas');
+  exp.width=skCanvas.width*scale;exp.height=skCanvas.height*scale;
+  const ec=exp.getContext('2d');
+  ec.scale(scale,scale);
+  ec.drawImage(skCanvas,0,0);
+  skTexts.forEach(t=>{
+    const el=document.getElementById(t.id);if(!el)return;
+    const wr=skTextLayer.getBoundingClientRect();
+    const er=el.getBoundingClientRect();
+    const cx=(er.left-wr.left)+er.width/2, cy=(er.top-wr.top)+er.height/2;
+    const ang=(t.angle||0)*Math.PI/180;
+    const lines=(el.innerText||t.text).split('\n');
+    ec.save();ec.translate(cx,cy);ec.rotate(ang);
+    ec.font=`bold ${t.fontSize}px Oswald,sans-serif`;
+    ec.fillStyle=t.color;ec.textBaseline='top';
+    const lh=t.fontSize+4,th=lines.length*lh;
+    lines.forEach((ln,i)=>ec.fillText(ln,-er.width/2+4,-th/2+i*lh));
+    ec.restore();
+  });
+  const url=exp.toDataURL('image/png');
+  const p=projects.find(x=>x.id===skPid);
+  if(p)p.doors=p.doors.map(d=>d.id===skDid?{...d,sketch:url}:d);
+  persist();renderAll();closeSketch();
+}
+
+function clearCanvas(){
+  skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);drawGrid();pushHist();
+  skTexts=[];skTextLayer.innerHTML='';
+}
+
+function setTool(t){
+  skTool=t;
+  ['draw','line','rect','text','move','erase'].forEach(x=>{const el=document.getElementById('sk-tool-'+x);if(el)el.classList.toggle('active',x===t);});
+  const hints={draw:'Desenhe livremente o esquema da porta.',line:'Linha reta.',rect:'Retângulo.',text:'Clique para adicionar texto.',move:'Selecione e arraste textos. Use A⁺/A⁻ e ↺↻ para ajustar.',erase:'Borracha.'};
+  document.getElementById('skHintText').textContent=hints[t]||'';
+  skCanvas.style.cursor=t==='erase'?'cell':t==='move'?'default':'crosshair';
+  skTextLayer.style.pointerEvents=t==='move'?'auto':'none';
+}
+function setColor(c,el){skColor=c;document.querySelectorAll('.sk-color').forEach(x=>x.classList.remove('sel'));el.classList.add('sel');}
+
+// text
+function selectTxt(id){
+  document.querySelectorAll('.sk-txt-box').forEach(d=>{d.style.border='2px dashed '+d.getAttribute('data-color');d.style.boxShadow='0 2px 8px rgba(0,0,0,.15)';});
+  skSelectedTxt=id;
+  if(!id)return;
+  const div=document.getElementById(id);
+  if(div){div.style.border='2.5px solid #c8902a';div.style.boxShadow='0 0 0 3px rgba(200,144,42,.3)';}
+}
+function changeFontSize(d){
+  if(!skSelectedTxt)return;
+  const t=skTexts.find(t=>t.id===skSelectedTxt);if(!t)return;
+  t.fontSize=Math.max(8,Math.min(120,t.fontSize+d));
+  const div=document.getElementById(t.id);
+  if(div){div.style.fontSize=t.fontSize+'px';div.style.minHeight=(t.fontSize+14)+'px';}
+}
+function rotateText(d){
+  if(!skSelectedTxt)return;
+  const t=skTexts.find(t=>t.id===skSelectedTxt);if(!t)return;
+  t.angle=(t.angle||0)+d;
+  const div=document.getElementById(t.id);
+  if(div)div.style.transform=`rotate(${t.angle}deg)`;
+}
+function addTextBox(x,y){
+  const id='txt'+(++skTxtCnt);const fs=22;const color=skColor;
+  const div=document.createElement('div');
+  div.id=id;div.className='sk-txt-box';div.contentEditable='true';div.spellcheck=false;
+  div.style.cssText=`position:absolute;left:${x}px;top:${y}px;min-width:80px;min-height:${fs+14}px;font-family:'Oswald',sans-serif;font-weight:700;font-size:${fs}px;line-height:1.3;color:${color};background:rgba(255,255,255,.9);border:2.5px solid #c8902a;border-radius:5px;padding:4px 8px;outline:none;cursor:text;white-space:pre-wrap;word-break:break-word;max-width:320px;box-shadow:0 0 0 3px rgba(200,144,42,.3);pointer-events:auto;user-select:text;transform:rotate(0deg);transform-origin:center;`;
+  div.setAttribute('data-skid',id);div.setAttribute('data-color',color);
+  div.addEventListener('mousedown',e=>{selectTxt(id);if(skTool!=='move')return;e.preventDefault();e.stopPropagation();startDrag(div,e.clientX,e.clientY);});
+  div.addEventListener('touchstart',e=>{selectTxt(id);if(skTool!=='move')return;e.preventDefault();e.stopPropagation();startDrag(div,e.touches[0].clientX,e.touches[0].clientY);},{passive:false});
+  div.addEventListener('focus',()=>selectTxt(id));
+  div.addEventListener('click',e=>{e.stopPropagation();selectTxt(id);});
+  skTextLayer.appendChild(div);
+  skTexts.push({id,x,y,text:'',color,fontSize:fs,angle:0,el:div});
+  skSelectedTxt=id;
+  setTimeout(()=>div.focus(),30);
+  div.addEventListener('input',()=>{const t=skTexts.find(t=>t.id===id);if(t)t.text=div.innerText;});
+  return div;
+}
+function startDrag(div,cx,cy){
+  skDragTxt=div;const r=div.getBoundingClientRect(),wr=skTextLayer.getBoundingClientRect();
+  skDragOx=cx-(r.left-wr.left);skDragOy=cy-(r.top-wr.top);
+}
+document.addEventListener('mousemove',e=>{
+  if(!skDragTxt)return;
+  const wr=skTextLayer.getBoundingClientRect();
+  const nx=e.clientX-wr.left-skDragOx,ny=e.clientY-wr.top-skDragOy;
+  skDragTxt.style.left=Math.max(0,nx)+'px';skDragTxt.style.top=Math.max(0,ny)+'px';
+  const id=skDragTxt.getAttribute('data-skid'),t=skTexts.find(t=>t.id===id);
+  if(t){t.x=Math.max(0,nx);t.y=Math.max(0,ny);}
+});
+document.addEventListener('touchmove',e=>{
+  if(!skDragTxt)return;e.preventDefault();
+  const wr=skTextLayer.getBoundingClientRect(),tc=e.touches[0];
+  const nx=tc.clientX-wr.left-skDragOx,ny=tc.clientY-wr.top-skDragOy;
+  skDragTxt.style.left=Math.max(0,nx)+'px';skDragTxt.style.top=Math.max(0,ny)+'px';
+  const id=skDragTxt.getAttribute('data-skid'),t=skTexts.find(t=>t.id===id);
+  if(t){t.x=Math.max(0,nx);t.y=Math.max(0,ny);}
+},{passive:false});
+document.addEventListener('mouseup',()=>skDragTxt=null);
+document.addEventListener('touchend',()=>skDragTxt=null);
+
+// drawing
+function getPos(e){const r=skCanvas.getBoundingClientRect(),s=e.touches?e.touches[0]:e;return{x:s.clientX-r.left,y:s.clientY-r.top};}
+function skDown(e){
+  selectTxt(null);
+  if(skTool==='text'){e.preventDefault();const{x,y}=getPos(e);addTextBox(x,y);return;}
+  e.preventDefault();skDrawing=true;
+  const{x,y}=getPos(e);skStartX=x;skStartY=y;
+  if(skTool==='draw'||skTool==='erase'){skCtx.beginPath();skCtx.moveTo(x,y);}
+  else skSnapshot=skCtx.getImageData(0,0,skCanvas.width,skCanvas.height);
+}
+function skMove(e){
+  if(!skDrawing)return;e.preventDefault();
+  const{x,y}=getPos(e);const sz=parseInt(document.getElementById('skSize').value)||3;
+  if(skTool==='draw'){skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;skCtx.lineCap='round';skCtx.lineJoin='round';skCtx.lineTo(x,y);skCtx.stroke();}
+  else if(skTool==='erase'){skCtx.strokeStyle='#fff';skCtx.lineWidth=sz*5;skCtx.lineCap='round';skCtx.lineTo(x,y);skCtx.stroke();}
+  else{
+    skCtx.putImageData(skSnapshot,0,0);skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;skCtx.lineCap='round';skCtx.beginPath();
+    if(skTool==='line'){skCtx.moveTo(skStartX,skStartY);skCtx.lineTo(x,y);skCtx.stroke();}
+    else if(skTool==='rect')skCtx.strokeRect(skStartX,skStartY,x-skStartX,y-skStartY);
+  }
+}
+function skUp(){if(!skDrawing)return;skDrawing=false;skCtx.beginPath();pushHist();}
+
+skCanvas.addEventListener('mousedown',skDown);
+skCanvas.addEventListener('mousemove',skMove);
+skCanvas.addEventListener('mouseup',skUp);
+skCanvas.addEventListener('mouseleave',skUp);
+skCanvas.addEventListener('touchstart',skDown,{passive:false});
+skCanvas.addEventListener('touchmove',skMove,{passive:false});
+skCanvas.addEventListener('touchend',skUp);
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+loadData();
+renderAll();
+</script>
+</body>
+</html>

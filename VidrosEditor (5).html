@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vidros Editor</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Lato:wght@300;400;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Lato',sans-serif;background:#eef3fb;height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+#root{display:flex;flex-direction:column;height:100vh;overflow:hidden;}
+#hdr{background:linear-gradient(135deg,#0d3d7a 0%,#1a5fa8 100%);padding:0 20px;height:58px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.hdr-logo{display:flex;align-items:center;gap:12px;}
+.hdr-icon{width:36px;height:36px;background:rgba(255,255,255,0.15);border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:18px;}
+.hdr-title{color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;letter-spacing:1px;}
+.hdr-sub{color:rgba(255,255,255,0.55);font-size:10px;letter-spacing:.5px;}
+.hdr-right{display:flex;gap:6px;align-items:center;}
+.tab-btn{border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;letter-spacing:.5px;transition:all .15s;}
+.tab-btn.on{background:#fff;color:#1a5fa8;}
+.tab-btn.off{background:rgba(255,255,255,0.13);color:#fff;}
+.tab-btn.off:hover{background:rgba(255,255,255,0.22);}
+.print-btn{display:flex;align-items:center;gap:6px;background:linear-gradient(135deg,#e63946,#c1121f);color:#fff;border:none;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:13px;box-shadow:0 2px 8px rgba(193,18,31,.3);transition:all .15s;}
+.print-btn:hover{transform:translateY(-1px);}
+#layout{display:flex;flex:1;overflow:hidden;}
+#sidebar{width:230px;flex-shrink:0;background:#fff;border-right:1.5px solid #dde8f5;display:flex;flex-direction:column;overflow:hidden;}
+.sb-head{padding:14px 12px 10px;border-bottom:1px solid #dde8f5;}
+.sb-title{font-size:10px;font-weight:700;color:#7a90b0;letter-spacing:.8px;text-transform:uppercase;margin-bottom:10px;}
+.new-btn{width:100%;border:1.5px solid #b0c8e8;border-radius:9px;background:transparent;color:#1a5fa8;padding:8px 12px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:6px;transition:all .15s;}
+.new-btn:hover{background:#e6f1fb;border-color:#1a5fa8;}
+.sb-list{flex:1;overflow-y:auto;padding:8px 6px;}
+.sb-list::-webkit-scrollbar{width:4px;}
+.sb-list::-webkit-scrollbar-track{background:#f7faff;}
+.sb-list::-webkit-scrollbar-thumb{background:#b0c8e8;border-radius:2px;}
+.proj-item{border-radius:10px;padding:9px 10px;cursor:pointer;margin-bottom:3px;transition:background .15s;position:relative;}
+.proj-item:hover{background:#f0f6ff;}
+.proj-item.active{background:#e6f1fb;border-left:3px solid #1a5fa8;padding-left:7px;}
+.proj-name{font-size:13px;font-weight:700;color:#1a2a40;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Barlow Condensed',sans-serif;}
+.proj-sub{font-size:11px;color:#7a90b0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px;}
+.proj-del{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:#c0c8d8;font-size:15px;opacity:0;transition:opacity .15s;line-height:1;padding:2px;}
+.proj-item:hover .proj-del{opacity:1;}
+.proj-del:hover{color:#e05c5c;}
+.sb-empty{padding:20px 10px;text-align:center;color:#9aacbf;font-size:12px;}
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+#info-bar{background:#fff;border-bottom:1.5px solid #dde8f5;padding:10px 20px;display:flex;gap:14px;align-items:center;flex-shrink:0;flex-wrap:wrap;}
+.lbl{font-size:11px;color:#7a90b0;font-weight:700;letter-spacing:.5px;white-space:nowrap;}
+.fi{border:1.5px solid #dde8f5;border-radius:8px;padding:7px 11px;font-size:14px;font-weight:700;color:#1a2a40;background:#f7faff;font-family:'Barlow Condensed',sans-serif;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:#1a5fa8;background:#fff;}
+.idiv{width:1px;height:30px;background:#dde8f5;flex-shrink:0;}
+.stat-lbl{font-size:10px;color:#7a90b0;font-weight:700;text-align:right;}
+.stat-val{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:21px;color:#1a5fa8;text-align:right;line-height:1;}
+.auto-badge{font-size:10px;color:#1a5fa8;background:#e6f1fb;padding:3px 9px;border-radius:20px;font-weight:600;white-space:nowrap;transition:all .3s;}
+#content{flex:1;overflow-y:auto;padding:20px;}
+#content::-webkit-scrollbar{width:6px;}
+#content::-webkit-scrollbar-track{background:#eef3fb;}
+#content::-webkit-scrollbar-thumb{background:#b0c8e8;border-radius:3px;}
+.edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
+.gc{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(30,80,140,.09);border:1.5px solid #dde8f5;padding:16px 14px 12px;display:flex;flex-direction:column;gap:9px;}
+.gc.has-sketch{border-color:#a78bfa;box-shadow:0 2px 12px rgba(109,40,217,.15);}
+.gc-top{display:flex;align-items:center;justify-content:space-between;}
+.badge{background:#1a5fa8;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;}
+.gc-rm{background:none;border:none;cursor:pointer;color:#c0c8d8;font-size:17px;transition:color .15s;padding:2px 4px;line-height:1;}
+.gc-rm:hover{color:#e05c5c;}
+.gc-preview{display:flex;justify-content:center;align-items:center;min-height:80px;position:relative;}
+.gc-dims{display:flex;gap:7px;}
+.gc-lbl{font-size:10px;color:#7a90b0;font-weight:700;letter-spacing:.5px;display:block;margin-bottom:3px;}
+.gc-inp{width:100%;border:1.5px solid #dde8f5;border-radius:8px;padding:6px 9px;font-size:13px;font-family:'Barlow Condensed',sans-serif;color:#1a2a40;background:#f7faff;outline:none;transition:border-color .15s;}
+.gc-inp:focus{border-color:#1a5fa8;background:#fff;}
+.gc-inp optgroup{font-weight:700;color:#7a90b0;font-style:normal;font-size:11px;}
+.gc-inp option{font-size:12px;color:#1a2a40;}
+.gc-obs-tag{background:#fff5f5;border:1px solid #f5b8b8;border-radius:6px;padding:4px 9px;font-size:10px;color:#c04040;font-weight:700;display:flex;align-items:center;gap:4px;}
+.gc-nota-tag{background:#f0f6ff;border:1px solid #b0c8e8;border-radius:6px;padding:4px 9px;font-size:10px;color:#1a5fa8;font-weight:600;display:flex;align-items:center;gap:4px;}
+
+/* sketch button on card */
+.sketch-btn{
+  width:100%;border:1.5px dashed #a78bfa;border-radius:8px;
+  background:rgba(109,40,217,.04);color:#7c3aed;
+  padding:6px 10px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;
+  display:flex;align-items:center;justify-content:center;gap:5px;
+  transition:all .15s;
+}
+.sketch-btn:hover{background:rgba(109,40,217,.09);border-color:#7c3aed;}
+.sketch-btn.has{background:rgba(109,40,217,.08);border-style:solid;border-color:#7c3aed;}
+.sketch-thumb{width:100%;border-radius:6px;border:1px solid #dde8f5;display:block;background:#f8f5ff;}
+
+.add-card{border:2px dashed #b0c8e8;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:220px;color:#6a9fd0;transition:all .15s;background:rgba(26,95,168,.02);font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;letter-spacing:.5px;}
+.add-card:hover{background:rgba(26,95,168,.07);border-color:#1a5fa8;color:#1a5fa8;}
+.prev-wrap{background:#fff;border-radius:14px;border:1.5px solid #dde8f5;overflow:hidden;}
+.prev-hdr{background:linear-gradient(135deg,#0d3d7a 0%,#1a5fa8 100%);padding:20px 28px;display:flex;align-items:center;justify-content:space-between;}
+.prev-grid{padding:22px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;}
+.pc{background:#fff;border-radius:12px;border:1.5px solid #dde8f5;box-shadow:0 2px 10px rgba(30,80,140,.07);padding:13px 9px 11px;display:flex;flex-direction:column;align-items:center;gap:5px;}
+.prev-ftr{background:#f7faff;border-top:1.5px solid #dde8f5;padding:13px 24px;display:flex;align-items:center;justify-content:space-between;}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:300px;gap:12px;color:#9aacbf;}
+
+/* ── MODAL NOVO PROJETO ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(13,61,122,.35);display:flex;align-items:center;justify-content:center;z-index:1000;}
+.modal{background:#fff;border-radius:16px;border:1.5px solid #dde8f5;padding:28px 26px;width:340px;box-shadow:0 20px 60px rgba(13,61,122,.2);}
+.modal-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:#1a2a40;margin-bottom:20px;letter-spacing:.5px;}
+.m-lbl{font-size:11px;color:#7a90b0;font-weight:700;letter-spacing:.5px;display:block;margin-bottom:4px;}
+.m-inp{width:100%;border:1.5px solid #dde8f5;border-radius:9px;padding:9px 12px;font-size:14px;font-family:'Barlow Condensed',sans-serif;color:#1a2a40;background:#f7faff;outline:none;margin-bottom:14px;transition:border-color .15s;}
+.m-inp:focus{border-color:#1a5fa8;background:#fff;}
+.modal-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:6px;}
+.mbtn{border:1.5px solid #dde8f5;border-radius:9px;padding:8px 18px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:14px;font-weight:700;background:transparent;color:#4a6080;transition:all .15s;}
+.mbtn:hover{background:#f0f6ff;border-color:#1a5fa8;color:#1a5fa8;}
+.mbtn.primary{background:linear-gradient(135deg,#1a5fa8,#0d3d7a);color:#fff;border-color:#1a5fa8;}
+.mbtn.primary:hover{opacity:.9;transform:translateY(-1px);}
+
+/* ── SKETCH MODAL ── */
+#sketchModal{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);
+  z-index:2000;align-items:center;justify-content:center;padding:16px;
+}
+#sketchModal.open{display:flex;}
+.sketch-box{
+  background:#fff;border-radius:18px;
+  box-shadow:0 24px 80px rgba(0,0,0,.35);
+  display:flex;flex-direction:column;
+  width:min(680px,100%);max-height:95vh;overflow:hidden;
+}
+.sketch-toolbar{
+  padding:12px 16px;
+  background:#1a1a2e;
+  display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+}
+.sketch-toolbar-title{
+  color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;
+  font-size:16px;letter-spacing:1px;flex:1;
+}
+.sk-btn{
+  background:rgba(255,255,255,.1);border:none;color:#e2e8f0;
+  border-radius:7px;padding:6px 12px;cursor:pointer;
+  font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:12px;
+  display:flex;align-items:center;gap:4px;transition:all .15s;white-space:nowrap;
+}
+.sk-btn:hover{background:rgba(255,255,255,.2);}
+.sk-btn.active{background:#7c3aed;color:#fff;}
+.sk-btn.danger{background:rgba(229,57,53,.2);color:#ff6b6b;}
+.sk-btn.danger:hover{background:rgba(229,57,53,.4);}
+.sk-btn.save{background:#1a5fa8;color:#fff;}
+.sk-btn.save:hover{background:#0d3d7a;}
+.sk-sep{width:1px;height:24px;background:rgba(255,255,255,.15);flex-shrink:0;}
+.sk-color{width:26px;height:26px;border-radius:50%;border:2px solid transparent;cursor:pointer;transition:border .15s;}
+.sk-color.sel{border-color:#fff;}
+.sk-size-wrap{display:flex;align-items:center;gap:5px;}
+.sk-size-lbl{color:rgba(255,255,255,.5);font-size:11px;font-weight:600;}
+.sk-size{-webkit-appearance:none;width:60px;height:4px;background:rgba(255,255,255,.2);border-radius:2px;outline:none;cursor:pointer;}
+.sk-size::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;cursor:pointer;}
+
+.sketch-hint{
+  background:#f8f5ff;padding:7px 16px;
+  font-size:11px;color:#7c3aed;font-weight:600;letter-spacing:.3px;
+  border-bottom:1px solid #ede9fe;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+}
+.sketch-hint span{opacity:.7;}
+
+.sketch-canvas-wrap{
+  flex:1;overflow:hidden;position:relative;
+  background:#fff;cursor:crosshair;min-height:300px;
+}
+#sketchCanvas{display:block;touch-action:none;}
+
+.sketch-footer{
+  padding:10px 16px;background:#f7faff;border-top:1px solid #dde8f5;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;
+}
+.sketch-dims{font-size:12px;color:#7a90b0;font-weight:600;}
+.sketch-footer-btns{display:flex;gap:8px;}
+.sfbtn{border:1.5px solid #dde8f5;border-radius:8px;padding:7px 16px;cursor:pointer;font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:700;background:transparent;color:#4a6080;transition:all .15s;}
+.sfbtn:hover{background:#f0f6ff;border-color:#1a5fa8;color:#1a5fa8;}
+.sfbtn.ok{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;border-color:#7c3aed;}
+.sfbtn.ok:hover{opacity:.9;}
+
+/* ── PRINT ── */
+@media print {
+  @page{size:A4 portrait;margin:12mm;}
+  body,#root{height:auto!important;overflow:visible!important;background:#fff!important;}
+  #hdr,#sidebar,#info-bar,.modal-overlay,#sketchModal,.no-print{display:none!important;}
+  #layout{display:block!important;}
+  #main{display:block!important;overflow:visible!important;}
+  #content{overflow:visible!important;padding:0!important;}
+  .edit-grid,.add-card{display:none!important;}
+  .prev-wrap{border:none!important;border-radius:0!important;box-shadow:none!important;}
+  .prev-hdr{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;border-radius:0!important;}
+  .prev-grid{grid-template-columns:repeat(5,1fr)!important;gap:8px!important;padding:14px!important;}
+  .pc{box-shadow:none!important;border:1px solid #dde8f5!important;break-inside:avoid;page-break-inside:avoid;}
+  .prev-ftr{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;}
+}
+</style>
+</head>
+<body>
+<div id="root">
+  <div id="hdr">
+    <div class="hdr-logo">
+      <div class="hdr-icon">🪟</div>
+      <div>
+        <div class="hdr-title">VIDROS EDITOR</div>
+        <div class="hdr-sub">Gestão de folhas de vidro</div>
+      </div>
+    </div>
+    <div class="hdr-right" id="hdr-right"></div>
+  </div>
+  <div id="layout">
+    <div id="sidebar">
+      <div class="sb-head">
+        <div class="sb-title">Projetos salvos</div>
+        <button class="new-btn" onclick="openNewModal()">
+          <span style="font-size:18px;line-height:1;margin-top:-1px;">+</span> Novo projeto
+        </button>
+      </div>
+      <div class="sb-list" id="sb-list"></div>
+    </div>
+    <div id="main">
+      <div id="info-bar"></div>
+      <div id="content"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── SKETCH MODAL ── -->
+<div id="sketchModal">
+  <div class="sketch-box">
+    <div class="sketch-toolbar">
+      <span class="sketch-toolbar-title">✏️ DESENHAR PEÇA</span>
+      <div class="sk-btn active" id="sk-tool-draw" onclick="setTool('draw')" title="Desenhar livre">✏️ Livre</div>
+      <div class="sk-btn" id="sk-tool-line" onclick="setTool('line')" title="Linha reta">📏 Reta</div>
+      <div class="sk-btn" id="sk-tool-rect" onclick="setTool('rect')" title="Retângulo">▭ Ret.</div>
+      <div class="sk-btn" id="sk-tool-tri" onclick="setTool('tri')" title="Triângulo">△ Tri.</div>
+      <div class="sk-btn" id="sk-tool-text" onclick="setTool('text')" title="Caixa de texto">T Texto</div>
+      <div class="sk-btn" id="sk-tool-move" onclick="setTool('move')" title="Mover/editar texto">✥ Mover</div>
+      <div class="sk-btn" onclick="changeFontSize(-2)" title="Diminuir texto" id="sk-txt-minus">A⁻</div>
+      <div class="sk-btn" onclick="changeFontSize(+2)" title="Aumentar texto" id="sk-txt-plus">A⁺</div>
+      <div class="sk-btn" onclick="rotateSelectedText(-15)" title="Girar -15°">↺</div>
+      <div class="sk-btn" onclick="rotateSelectedText(+15)" title="Girar +15°">↻</div>
+      <div class="sk-btn" id="sk-tool-erase" onclick="setTool('erase')" title="Borracha">⬜ Apagar</div>
+      <div class="sk-sep"></div>
+      <div class="sk-color sel" style="background:#1a5fa8;" onclick="setColor('#1a5fa8',this)" title="Azul"></div>
+      <div class="sk-color" style="background:#e53935;" onclick="setColor('#e53935',this)" title="Vermelho"></div>
+      <div class="sk-color" style="background:#2e7d32;" onclick="setColor('#2e7d32',this)" title="Verde"></div>
+      <div class="sk-color" style="background:#222;" onclick="setColor('#222',this)" title="Preto"></div>
+      <div class="sk-sep"></div>
+      <div class="sk-size-wrap">
+        <span class="sk-size-lbl">Esp.</span>
+        <input type="range" class="sk-size" id="skSize" min="1" max="20" value="3">
+      </div>
+      <div class="sk-sep"></div>
+      <div class="sk-size-wrap">
+        <span class="sk-size-lbl">Grade</span>
+        <select id="skGridSize" onchange="redrawGrid()" style="background:rgba(255,255,255,.1);border:none;color:#e2e8f0;border-radius:5px;padding:3px 5px;font-size:11px;cursor:pointer;">
+          <option value="10">10px</option>
+          <option value="20" selected>20px</option>
+          <option value="40">40px</option>
+          <option value="0">OFF</option>
+        </select>
+      </div>
+      <div class="sk-sep"></div>
+      <div class="sk-btn danger" onclick="clearCanvas()">🗑 Limpar</div>
+      <div class="sk-btn danger" onclick="undoSketch()">↩ Desfazer</div>
+    </div>
+    <div class="sketch-hint">
+      <span>💡</span>
+      <span id="skHintText">Desenhe livremente a forma da peça. Use as ferramentas acima para retas, retângulos ou triângulos.</span>
+    </div>
+    <div class="sketch-canvas-wrap" id="skCanvasWrap" style="position:relative;">
+      <canvas id="sketchCanvas"></canvas>
+      <div id="skTextLayer" style="position:absolute;inset:0;pointer-events:none;overflow:hidden;"></div>
+    </div>
+    <div class="sketch-footer">
+      <div class="sketch-dims" id="skDimsLabel">Peça: — × — mm</div>
+      <div class="sketch-footer-btns">
+        <button class="sfbtn" onclick="closeSketch()">Cancelar</button>
+        <button class="sfbtn ok" onclick="saveSketch()">✓ Salvar desenho</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  GLASS TYPES
+// ══════════════════════════════════════════════
+const GLASS_GROUPS=[
+  {label:"COMUM",types:["BRONZE 04MM - COMUM","BRONZE 06MM - COMUM","CANELADO 04MM - COMUM","FUMÊ 04MM - COMUM","FUMÊ 05MM - COMUM","FUMÊ 06MM - COMUM","INCOLOR 03MM - COMUM","INCOLOR 04MM - COMUM","INCOLOR 05MM - COMUM","INCOLOR 06MM - COMUM","INCOLOR 08MM - COMUM","INCOLOR 10MM - COMUM","INCOLOR 12MM - COMUM","INCOLOR 15MM - COMUM","INCOLOR 19MM - COMUM","MINI-BOREAL 04MM - COMUM","PONTILHADO 04MM - COMUM","VERDE 04MM - COMUM","VERDE 05MM - COMUM","VERDE 06MM - COMUM","VERDE 08MM - COMUM","VERDE 10MM - COMUM"]},
+  {label:"ESPELHO",types:["ESPELHO 04MM - BISOTÊ","ESPELHO 06MM - BISOTÊ","ESPELHO 04MM - LAPIDADO","ESPELHO 06MM - LAPIDADO"]},
+  {label:"LAMINADO",types:["LAMINADO 4+4 CHAMPAGNE","LAMINADO FUMÊ 3+3 - LAPIDADO","LAMINADO FUMÊ 4+4 - LAPIDADO","LAMINADO FUMÊ 5+5 - LAPIDADO","LAMINADO INCOLOR 3+3 - LAPIDADO","LAMINADO INCOLOR 4+4 - LAPIDADO","LAMINADO INCOLOR 5+5 - LAPIDADO","LAMINADO VERDE 3+3 - LAPIDADO","LAMINADO VERDE 4+4 - LAPIDADO","LAMINADO VERDE 5+5 - LAPIDADO"]},
+  {label:"TEMPERADO",types:["ACIDATO","ANTILOPE 08MM - TEMPERADO","ASTRAL PLUS 08MM - TEMPERADO","AZUL 08MM - TEMPERADO","BOX INCOLOR 08MM - TEMPERADO","BOX VERDE 08MM - TEMPERADO","BRONZE 06MM - TEMPERADO","BRONZE 08MM - TEMPERADO","BRONZE 10MM - TEMPERADO","FUMÊ 06MM - TEMPERADO","FUMÊ 08MM - TEMPERADO","FUMÊ 10MM - TEMPERADO","INCOLOR 06MM - TEMPERADO","INCOLOR 08MM - TEMPERADO","INCOLOR 10MM - TEMPERADO","INCOLOR 12MM - TEMPERADO","PELE DE VIDRO REFLETIVO","PONTILHADO 08MM - TEMPERADO","PONTILHADO 10MM - TEMPERADO","QUADRATO 08MM - TEMPERADO","VERDE 06MM - TEMPERADO","VERDE 08MM - TEMPERADO"]}
+];
+function buildSelectOptions(sel){
+  let h=`<option value="">— Selecione o tipo —</option>`;
+  GLASS_GROUPS.forEach(g=>{
+    h+=`<optgroup label="── ${g.label} ──">`;
+    g.types.forEach(t=>h+=`<option value="${t}" ${t===sel?'selected':''}>${t}</option>`);
+    h+=`</optgroup>`;
+  });
+  return h;
+}
+
+// ══════════════════════════════════════════════
+//  STATE
+// ══════════════════════════════════════════════
+const STORE='vidros_proj_v5',LAST='vidros_last_v5';
+let projects=[],activeId=null,tab='edit',gid=200,saveTimer=null,modal=null;
+
+function loadData(){
+  try{const d=localStorage.getItem(STORE);if(d)projects=JSON.parse(d);}catch(e){}
+  try{const l=localStorage.getItem(LAST);if(l)activeId=l;}catch(e){}
+  if(!projects.length){
+    const p=newProject("Renata Amaral","Obra Renata Amaral");
+    p.glasses=[
+      {id:1,w:645,h:1220,obs:"",nota:"",sketch:null},{id:2,w:645,h:955,obs:"",nota:"",sketch:null},
+      {id:3,w:645,h:1145,obs:"",nota:"",sketch:null},{id:4,w:645,h:1155,obs:"",nota:"",sketch:null},
+      {id:5,w:645,h:1155,obs:"",nota:"",sketch:null},{id:6,w:645,h:1110,obs:"",nota:"",sketch:null},
+      {id:7,w:645,h:1160,obs:"",nota:"",sketch:null},{id:8,w:645,h:1135,obs:"",nota:"",sketch:null},
+      {id:9,w:645,h:1140,obs:"",nota:"",sketch:null},{id:10,w:645,h:1135,obs:"",nota:"",sketch:null},
+      {id:11,w:645,h:1265,obs:"LAMINADO INCOLOR 4+4 - LAPIDADO",nota:"",sketch:null},{id:12,w:645,h:1265,obs:"LAMINADO INCOLOR 4+4 - LAPIDADO",nota:"",sketch:null},
+    ];
+    projects.push(p);activeId=p.id;persist();
+  }
+  if(!activeId||!projects.find(p=>p.id===activeId))activeId=projects[0]?.id||null;
+}
+function persist(){
+  try{localStorage.setItem(STORE,JSON.stringify(projects));localStorage.setItem(LAST,activeId||'');}catch(e){}
+}
+function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>{persist();flashSaved();},500);}
+function flashSaved(){
+  const el=document.getElementById('auto-badge');if(!el)return;
+  el.textContent='✓ salvo';el.style.background='#d4edda';el.style.color='#155724';
+  setTimeout(()=>{if(el){el.textContent='auto-save';el.style.background='#e6f1fb';el.style.color='#1a5fa8';}},1800);
+}
+function newProject(client,obra){return{id:'p'+Date.now()+Math.random().toString(36).slice(2),client:client||'',obra:obra||'',glasses:[],createdAt:Date.now()};}
+function active(){return projects.find(p=>p.id===activeId)||null;}
+function area(glasses){return glasses.reduce((s,g)=>s+(g.w*g.h)/1e6,0);}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function glassSVG(w,h,pw){
+  const r=h/Math.max(w,1),ph=Math.max(40,Math.min(110,Math.round(pw*r)));
+  return `<svg width="${pw}" height="${ph}" viewBox="0 0 ${pw} ${ph}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gg${pw}" x1="0" y1="0" x2="1" y2="1"><stop offset="60%" stop-color="#d8edf8"/><stop offset="100%" stop-color="#b8d8ef"/></linearGradient></defs><rect x="3" y="3" width="${pw-3}" height="${ph-3}" fill="#b8cfe0" rx="2"/><rect width="${pw-3}" height="${ph-3}" fill="url(#gg${pw})" stroke="#6aacda" stroke-width="2" rx="2"/><polygon points="2,2 16,2 2,24" fill="rgba(255,255,255,0.45)"/></svg>`;
+}
+
+// ══════════════════════════════════════════════
+//  RENDER
+// ══════════════════════════════════════════════
+function renderAll(){renderHdr();renderSB();renderInfoBar();renderContent();}
+
+function renderHdr(){
+  const p=active();
+  document.getElementById('hdr-right').innerHTML=`
+    <button class="tab-btn ${tab==='edit'?'on':'off'}" onclick="setTab('edit')">✏️ Editar</button>
+    <button class="tab-btn ${tab==='preview'?'on':'off'}" onclick="setTab('preview')">👁️ Visualizar</button>
+    ${tab==='preview'&&p?`<button class="print-btn no-print" onclick="window.print()">🖨️ Imprimir / PDF</button>`:''}
+  `;
+}
+function renderSB(){
+  const el=document.getElementById('sb-list');
+  if(!projects.length){el.innerHTML=`<div class="sb-empty">Nenhum projeto ainda.<br>Crie o primeiro acima.</div>`;return;}
+  el.innerHTML=projects.map(p=>`
+    <div class="proj-item ${p.id===activeId?'active':''}" onclick="selectProj('${p.id}')">
+      <div class="proj-name">${esc(p.client)||'Sem nome'}</div>
+      <div class="proj-sub">${esc(p.obra)||'Sem obra'}</div>
+      <button class="proj-del" onclick="delProj(event,'${p.id}')" title="Excluir">✕</button>
+    </div>`).join('');
+}
+function renderInfoBar(){
+  const p=active(),el=document.getElementById('info-bar');
+  if(!p){el.innerHTML='';return;}
+  const a=area(p.glasses);
+  el.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;"><span class="lbl">CLIENTE</span>
+      <input class="fi" style="width:180px;" value="${esc(p.client)}" oninput="updField('client',this.value)" placeholder="Nome do cliente">
+    </div>
+    <div class="idiv"></div>
+    <div style="display:flex;align-items:center;gap:8px;"><span class="lbl">OBRA</span>
+      <input class="fi" style="width:230px;" value="${esc(p.obra)}" oninput="updField('obra',this.value)" placeholder="Nome da obra">
+    </div>
+    <div style="margin-left:auto;display:flex;gap:14px;align-items:center;">
+      <span class="auto-badge" id="auto-badge">auto-save</span>
+      <div><div class="stat-lbl">VIDROS</div><div class="stat-val">${p.glasses.length}</div></div>
+      <div class="idiv"></div>
+      <div><div class="stat-lbl">ÁREA TOTAL</div><div class="stat-val">${a.toFixed(3)} m²</div></div>
+    </div>`;
+}
+function renderContent(){
+  const p=active(),el=document.getElementById('content');
+  if(!p){
+    el.innerHTML=`<div class="empty"><svg width="64" height="64" viewBox="0 0 64 64" fill="none"><rect x="8" y="8" width="48" height="48" rx="4" stroke="#9aacbf" stroke-width="2"/><line x1="8" y1="32" x2="56" y2="32" stroke="#9aacbf" stroke-width="2"/><line x1="32" y1="8" x2="32" y2="56" stroke="#9aacbf" stroke-width="2"/></svg>
+      <div style="font-size:15px;font-weight:700;font-family:'Barlow Condensed',sans-serif;color:#7a90b0;">Selecione ou crie um projeto</div>
+      <div style="font-size:12px;color:#9aacbf;">Use a barra lateral para navegar entre projetos</div></div>`;return;
+  }
+  el.innerHTML=tab==='edit'?buildEdit(p):buildPreview(p);
+}
+
+function buildEdit(p){
+  return`<div class="edit-grid">
+    ${p.glasses.map((g,i)=>`
+      <div class="gc${g.sketch?' has-sketch':''}">
+        <div class="gc-top"><div class="badge">${i+1}</div><button class="gc-rm" onclick="rmGlass('${p.id}',${g.id})">✕</button></div>
+        <div class="gc-preview">
+          ${g.sketch
+            ? `<img class="sketch-thumb" src="${g.sketch}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid #ede9fe;" alt="Esboço">`
+            : glassSVG(g.w,g.h,60)
+          }
+        </div>
+        ${!g.sketch?`<div class="gc-dims">
+          <label style="flex:1;"><span class="gc-lbl">LARGURA (mm)</span>
+            <input class="gc-inp" type="number" value="${g.w}" oninput="updGlass('${p.id}',${g.id},'w',+this.value)">
+          </label>
+          <label style="flex:1;"><span class="gc-lbl">ALTURA (mm)</span>
+            <input class="gc-inp" type="number" value="${g.h}" oninput="updGlass('${p.id}',${g.id},'h',+this.value)">
+          </label>
+        </div>`:''}
+        <label><span class="gc-lbl">TIPO</span>
+          <select class="gc-inp" style="cursor:pointer;" onchange="updGlass('${p.id}',${g.id},'obs',this.value)">
+            ${buildSelectOptions(g.obs)}
+          </select>
+        </label>
+        ${g.obs?`<div class="gc-obs-tag"><span>●</span>${g.obs}</div>`:''}
+        <label><span class="gc-lbl">OBSERVAÇÃO</span>
+          <input class="gc-inp" type="text" value="${esc(g.nota||'')}" placeholder="Ex: recorte, furo, chanfro…" oninput="updGlass('${p.id}',${g.id},'nota',this.value)">
+        </label>
+        ${g.nota?`<div class="gc-nota-tag"><span>📝</span>${esc(g.nota)}</div>`:''}
+        <button class="sketch-btn ${g.sketch?'has':''}" onclick="openSketch('${p.id}',${g.id},${g.w},${g.h})">
+          ${g.sketch?'✏️ Editar desenho':'✏️ Desenhar forma especial'}
+        </button>
+        ${g.sketch?`<button class="gc-inp" style="cursor:pointer;background:#fff5f5;border-color:#f5b8b8;color:#c04040;font-size:11px;padding:4px 8px;" onclick="clearSketch('${p.id}',${g.id})">🗑 Remover desenho</button>`:''}
+      </div>`).join('')}
+    <div class="add-card" onclick="addGlass('${p.id}')">
+      <span style="font-size:34px;line-height:1;">＋</span>
+      <span>Adicionar vidro</span>
+    </div>
+  </div>`;
+}
+
+function buildPreview(p){
+  const a=area(p.glasses);
+  return`<div class="prev-wrap">
+    <div class="prev-hdr">
+      <div><div style="color:rgba(255,255,255,.55);font-size:11px;letter-spacing:1px;font-weight:700;">OBRA</div>
+        <div style="color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;letter-spacing:.5px;">${esc(p.obra)||'—'}</div>
+      </div>
+      <div style="text-align:right;"><div style="color:rgba(255,255,255,.55);font-size:11px;letter-spacing:1px;font-weight:700;">CLIENTE</div>
+        <div style="color:#fff;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;letter-spacing:.5px;">${esc(p.client)||'—'}</div>
+      </div>
+    </div>
+    <div class="prev-grid">
+      ${p.glasses.map((g,i)=>{
+        const r=g.h/Math.max(g.w,1),pw=75,ph=Math.max(42,Math.min(120,Math.round(pw*r)));
+        const hStr=g.h>=1000?(g.h/1000).toFixed(3):String(g.h);
+        return`<div class="pc">
+          <div class="badge" style="width:28px;height:28px;font-size:14px;">${i+1}</div>
+          ${g.sketch
+            ? `<img src="${g.sketch}" style="width:${pw}px;max-height:${ph+20}px;object-fit:contain;border-radius:4px;border:1px solid #ede9fe;" alt="Esboço">`
+            : `<div style="display:flex;align-items:flex-start;gap:5px;">
+                ${glassSVG(g.w,g.h,pw)}
+                <div style="display:flex;flex-direction:column;align-items:center;height:${ph}px;justify-content:center;">
+                  <div style="width:1px;flex:1;background:#1a5fa8;"></div>
+                  <span style="font-size:10px;color:#1a5fa8;font-weight:700;white-space:nowrap;padding:1px 0;">${hStr}</span>
+                  <div style="width:1px;flex:1;background:#1a5fa8;"></div>
+                </div>
+              </div>`
+          }
+          <div style="display:flex;align-items:center;gap:3px;width:${pw}px;">
+            <div style="flex:1;height:1px;background:#1a5fa8;"></div>
+            <span style="font-size:10px;color:#1a5fa8;font-weight:700;">${g.w}</span>
+            <div style="flex:1;height:1px;background:#1a5fa8;"></div>
+          </div>
+          ${g.obs?`<div style="background:#fff0f0;border:1px solid #f5b8b8;border-radius:5px;padding:2px 5px;font-size:8px;color:#c04040;font-weight:700;text-align:center;width:100%;line-height:1.3;">● ${esc(g.obs)}</div>`:`<div style="height:18px;"></div>`}
+          ${g.nota?`<div style="background:#f0f6ff;border:1px solid #b0c8e8;border-radius:5px;padding:2px 5px;font-size:8px;color:#1a5fa8;font-weight:600;text-align:center;width:100%;line-height:1.3;">📝 ${esc(g.nota)}</div>`:''}
+          ${g.sketch?`<div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:5px;padding:2px 5px;font-size:8px;color:#6d28d9;font-weight:700;text-align:center;width:100%;">✏️ Forma especial</div>`:''}
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="prev-ftr">
+      <div style="display:flex;gap:14px;align-items:center;">
+        <div style="width:26px;height:18px;background:linear-gradient(135deg,#d8edf8 60%,#b8d8ef 100%);border:1.5px solid #6aacda;border-radius:2px;-webkit-print-color-adjust:exact;print-color-adjust:exact;"></div>
+        <span style="font-size:12px;color:#4a6080;font-weight:600;">Folha de Vidro</span>
+        <span style="font-size:11px;color:#9aacbf;">* Medidas em milímetros (mm)</span>
+      </div>
+      <div style="display:flex;gap:20px;">
+        <div style="text-align:right;"><div class="stat-lbl">TOTAL</div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:19px;color:#1a5fa8;">${p.glasses.length} vidros</div></div>
+        <div style="text-align:right;"><div class="stat-lbl">ÁREA</div><div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:19px;color:#1a5fa8;">${a.toFixed(3)} m²</div></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+// ══════════════════════════════════════════════
+//  ACTIONS
+// ══════════════════════════════════════════════
+function selectProj(id){activeId=id;tab='edit';persist();renderAll();}
+function setTab(t){tab=t;renderAll();}
+function updField(field,val){const p=active();if(!p)return;p[field]=val;renderSB();scheduleSave();}
+function updGlass(pid,id,field,val){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.map(g=>g.id===id?{...g,[field]:val}:g);renderInfoBar();scheduleSave();}
+function rmGlass(pid,id){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.filter(g=>g.id!==id);renderAll();scheduleSave();}
+function addGlass(pid){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=[...p.glasses,{id:gid++,w:645,h:1000,obs:"",nota:"",sketch:null}];renderAll();scheduleSave();}
+function clearSketch(pid,id){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.map(g=>g.id===id?{...g,sketch:null}:g);renderAll();scheduleSave();}
+function delProj(e,id){
+  e.stopPropagation();
+  if(!confirm('Excluir este projeto permanentemente?'))return;
+  projects=projects.filter(p=>p.id!==id);
+  if(activeId===id)activeId=projects.length?projects[0].id:null;
+  persist();renderAll();
+}
+
+// ══════════════════════════════════════════════
+//  PROJECT MODAL
+// ══════════════════════════════════════════════
+function openNewModal(){
+  if(modal)modal.remove();
+  modal=document.createElement('div');modal.className='modal-overlay';
+  modal.innerHTML=`<div class="modal">
+    <div class="modal-title">🪟 Novo projeto</div>
+    <label class="m-lbl">CLIENTE</label>
+    <input class="m-inp" id="mc" placeholder="Nome do cliente" autofocus>
+    <label class="m-lbl">OBRA</label>
+    <input class="m-inp" id="mo" placeholder="Nome da obra">
+    <div class="modal-btns">
+      <button class="mbtn" onclick="closeModal()">Cancelar</button>
+      <button class="mbtn primary" onclick="createProj()">Criar projeto</button>
+    </div>
+  </div>`;
+  modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
+  document.body.appendChild(modal);
+  setTimeout(()=>document.getElementById('mc')?.focus(),50);
+  document.addEventListener('keydown',handleEsc);
+}
+function closeModal(){if(modal){modal.remove();modal=null;}document.removeEventListener('keydown',handleEsc);}
+function handleEsc(e){if(e.key==='Escape'){closeModal();closeSketch();}}
+function createProj(){
+  const c=document.getElementById('mc')?.value.trim()||'';
+  const o=document.getElementById('mo')?.value.trim()||'';
+  if(!c&&!o){alert('Preencha pelo menos o nome do cliente ou da obra.');return;}
+  const p=newProject(c||'Sem nome',o||'Sem obra');
+  projects.unshift(p);activeId=p.id;tab='edit';
+  persist();closeModal();renderAll();
+}
+
+// ══════════════════════════════════════════════
+//  SKETCH ENGINE
+// ══════════════════════════════════════════════
+let skPid=null,skGid=null,skW=0,skH=0;
+let skTool='draw',skColor='#1a5fa8',skSize=3;
+let skDrawing=false,skStartX=0,skStartY=0;
+let skSnapshot=null;
+let skHistory=[];
+// Text boxes: [{id,x,y,text,color,fontSize,el}]
+let skTexts=[];
+let skDragTxt=null,skDragOx=0,skDragOy=0;
+
+const skModal=document.getElementById('sketchModal');
+const skCanvas=document.getElementById('sketchCanvas');
+const skCtx=skCanvas.getContext('2d');
+const skTextLayer=document.getElementById('skTextLayer');
+
+function openSketch(pid,gid_,w,h){
+  skPid=pid;skGid=gid_;skW=w;skH=h;
+  skTexts=[];
+  skTextLayer.innerHTML='';
+  const wrap=document.getElementById('skCanvasWrap');
+  const cw=Math.max(wrap.clientWidth||600,400);
+  const ch=Math.max(300,Math.round(cw*(h/Math.max(w,1))*0.55));
+  skCanvas.width=cw;
+  skCanvas.height=Math.min(ch,520);
+  skTextLayer.style.width=skCanvas.width+'px';
+  skTextLayer.style.height=skCanvas.height+'px';
+  const p=projects.find(x=>x.id===pid);
+  const g=p?.glasses.find(x=>x.id===gid_);
+  skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
+  drawGrid();
+  if(g?.sketch){
+    const img=new Image();
+    img.onload=()=>{skCtx.drawImage(img,0,0,skCanvas.width,skCanvas.height);pushHistory();};
+    img.src=g.sketch;
+  } else {
+    pushHistory();
+  }
+  document.getElementById('skDimsLabel').textContent=`Peça: ${w} × ${h} mm`;
+  skModal.classList.add('open');
+  setTool('draw');
+}
+
+// ── GRID ──────────────────────────────────────
+function getGridStep(){
+  const sel=document.getElementById('skGridSize');
+  return sel?parseInt(sel.value)||0:20;
+}
+function drawGrid(){
+  const step=getGridStep();
+  if(!step)return;
+  skCtx.save();
+  // minor lines
+  skCtx.strokeStyle='rgba(150,190,230,.3)';
+  skCtx.lineWidth=.5;
+  for(let x=0;x<=skCanvas.width;x+=step){skCtx.beginPath();skCtx.moveTo(x,0);skCtx.lineTo(x,skCanvas.height);skCtx.stroke();}
+  for(let y=0;y<=skCanvas.height;y+=step){skCtx.beginPath();skCtx.moveTo(0,y);skCtx.lineTo(skCanvas.width,y);skCtx.stroke();}
+  // major lines every 5 cells
+  const major=step*5;
+  skCtx.strokeStyle='rgba(100,150,210,.55)';
+  skCtx.lineWidth=1;
+  for(let x=0;x<=skCanvas.width;x+=major){skCtx.beginPath();skCtx.moveTo(x,0);skCtx.lineTo(x,skCanvas.height);skCtx.stroke();}
+  for(let y=0;y<=skCanvas.height;y+=major){skCtx.beginPath();skCtx.moveTo(0,y);skCtx.lineTo(skCanvas.width,y);skCtx.stroke();}
+  // labels on major lines
+  skCtx.fillStyle='rgba(100,150,210,.7)';
+  skCtx.font='9px Lato,sans-serif';
+  skCtx.textAlign='left';
+  for(let x=major;x<skCanvas.width;x+=major){skCtx.fillText(x+'px',x+2,10);}
+  for(let y=major;y<skCanvas.height;y+=major){skCtx.fillText(y+'px',2,y-2);}
+  skCtx.restore();
+}
+function redrawGrid(){
+  // repaint grid on base (non-destructive: restore history bottom then redraw)
+  if(skHistory.length){
+    skCtx.putImageData(skHistory[skHistory.length-1],0,0);
+  } else {
+    skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
+    drawGrid();pushHistory();
+  }
+}
+
+// ── HISTORY ───────────────────────────────────
+function pushHistory(){
+  skHistory.push(skCtx.getImageData(0,0,skCanvas.width,skCanvas.height));
+  if(skHistory.length>40)skHistory.shift();
+}
+function undoSketch(){
+  if(skHistory.length<=1)return;
+  skHistory.pop();
+  skCtx.putImageData(skHistory[skHistory.length-1],0,0);
+}
+
+// ── CLOSE / SAVE ──────────────────────────────
+function closeSketch(){
+  skModal.classList.remove('open');
+  skHistory=[];skTexts=[];
+  skTextLayer.innerHTML='';
+}
+
+function saveSketch(){
+  // Create high-res export canvas (2x)
+  const scale=2;
+  const expCanvas=document.createElement('canvas');
+  expCanvas.width=skCanvas.width*scale;
+  expCanvas.height=skCanvas.height*scale;
+  const expCtx=expCanvas.getContext('2d');
+  expCtx.scale(scale,scale);
+  // draw base canvas content
+  expCtx.drawImage(skCanvas,0,0);
+  // draw text boxes at correct positions with rotation
+  skTexts.forEach(t=>{
+    const el=document.getElementById(t.id);
+    if(!el)return;
+    const wr=skTextLayer.getBoundingClientRect();
+    const er=el.getBoundingClientRect();
+    const cx=(er.left-wr.left)+er.width/2;
+    const cy=(er.top-wr.top)+er.height/2;
+    const angle=(t.angle||0)*Math.PI/180;
+    const lines=(el.innerText||t.text).split('\n');
+    expCtx.save();
+    expCtx.translate(cx,cy);
+    expCtx.rotate(angle);
+    expCtx.font=`bold ${t.fontSize}px Barlow Condensed,Lato,sans-serif`;
+    expCtx.fillStyle=t.color;
+    expCtx.textBaseline='top';
+    const lineH=t.fontSize+4;
+    const totalH=lines.length*lineH;
+    lines.forEach((line,i)=>{
+      expCtx.fillText(line,-er.width/2+4,-totalH/2+i*lineH);
+    });
+    expCtx.restore();
+  });
+  const dataUrl=expCanvas.toDataURL('image/png');
+  const p=projects.find(x=>x.id===skPid);
+  if(p)p.glasses=p.glasses.map(g=>g.id===skGid?{...g,sketch:dataUrl}:g);
+  persist();renderAll();closeSketch();
+}
+
+function clearCanvas(){
+  skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
+  drawGrid();pushHistory();
+  skTexts=[];skTextLayer.innerHTML='';
+}
+
+// ── TOOL ──────────────────────────────────────
+function setTool(t){
+  skTool=t;
+  ['draw','line','rect','tri','text','move','erase'].forEach(x=>{
+    const el=document.getElementById('sk-tool-'+x);
+    if(el)el.classList.toggle('active',x===t);
+  });
+  const hints={
+    draw:'Desenhe livremente. Perfeito para formas irregulares e recortes.',
+    line:'Clique e arraste para traçar uma linha reta.',
+    rect:'Clique e arraste para desenhar um retângulo.',
+    tri:'Clique e arraste para desenhar um triângulo.',
+    text:'Clique no canvas para adicionar uma caixa de texto. Digite e pressione Enter.',
+    move:'Clique numa caixa para selecioná-la (fica laranja). Arraste para mover. Use A⁺/A⁻ e ↺↻ para ajustar.',
+    erase:'Clique e arraste para apagar partes do desenho.'
+  };
+  document.getElementById('skHintText').textContent=hints[t]||'';
+  if(t==='move') skCanvas.style.cursor='default';
+  else if(t==='erase') skCanvas.style.cursor='cell';
+  else skCanvas.style.cursor='crosshair';
+  // enable pointer events on text layer only for move tool
+  skTextLayer.style.pointerEvents=(t==='move')?'auto':'none';
+}
+
+function setColor(c,el){
+  skColor=c;
+  document.querySelectorAll('.sk-color').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ── TEXT BOXES ────────────────────────────────
+let skTxtIdCounter=0;
+let skSelectedTxt=null; // currently selected text box id
+
+function applyTxtTransform(div,t){
+  div.style.transform=`rotate(${t.angle||0}deg)`;
+  div.style.fontSize=t.fontSize+'px';
+  div.style.minHeight=(t.fontSize+14)+'px';
+}
+
+function selectTxtBox(id){
+  // deselect all
+  document.querySelectorAll('.sk-txt-box').forEach(d=>{
+    d.style.border='2px dashed '+d.getAttribute('data-color');
+    d.style.boxShadow='0 2px 10px rgba(0,0,0,.18)';
+  });
+  skSelectedTxt=id;
+  if(!id)return;
+  const div=document.getElementById(id);
+  if(div){
+    div.style.border='2.5px solid #f59e0b';
+    div.style.boxShadow='0 0 0 3px rgba(245,158,11,.35),0 2px 10px rgba(0,0,0,.18)';
+  }
+}
+
+function changeFontSize(delta){
+  if(!skSelectedTxt)return;
+  const t=skTexts.find(t=>t.id===skSelectedTxt);
+  if(!t)return;
+  t.fontSize=Math.max(8,Math.min(120,t.fontSize+delta));
+  const div=document.getElementById(t.id);
+  if(div)applyTxtTransform(div,t);
+}
+
+function rotateSelectedText(delta){
+  if(!skSelectedTxt)return;
+  const t=skTexts.find(t=>t.id===skSelectedTxt);
+  if(!t)return;
+  t.angle=(t.angle||0)+delta;
+  const div=document.getElementById(t.id);
+  if(div)applyTxtTransform(div,t);
+}
+
+function addTextBox(x,y){
+  const id='txt'+(++skTxtIdCounter);
+  const fontSize=22;
+  const color=skColor;
+  const div=document.createElement('div');
+  div.id=id;
+  div.className='sk-txt-box';
+  div.contentEditable='true';
+  div.spellcheck=false;
+  div.style.cssText=`
+    position:absolute;left:${x}px;top:${y}px;
+    min-width:80px;min-height:${fontSize+14}px;
+    font-family:'Barlow Condensed',sans-serif;font-weight:700;
+    font-size:${fontSize}px;line-height:1.3;color:${color};
+    background:rgba(255,255,255,.9);
+    border:2.5px solid #f59e0b;border-radius:5px;
+    padding:4px 8px;outline:none;cursor:text;
+    white-space:pre-wrap;word-break:break-word;max-width:300px;
+    box-shadow:0 0 0 3px rgba(245,158,11,.35),0 2px 10px rgba(0,0,0,.18);
+    pointer-events:auto;user-select:text;
+    transform:rotate(0deg);
+    transform-origin:center center;
+  `;
+  div.setAttribute('data-skid',id);
+  div.setAttribute('data-color',color);
+  div.setAttribute('data-fontsize',fontSize);
+  div.addEventListener('mousedown',onTxtMouseDown);
+  div.addEventListener('touchstart',onTxtTouchStart,{passive:false});
+  div.addEventListener('focus',()=>selectTxtBox(id));
+  div.addEventListener('click',e=>{e.stopPropagation();selectTxtBox(id);});
+  div.addEventListener('keydown',e=>{if(e.key==='Escape'){div.blur();}});
+  skTextLayer.appendChild(div);
+  skTexts.push({id,x,y,text:'',color,fontSize,angle:0,el:div});
+  skSelectedTxt=id;
+  setTimeout(()=>div.focus(),30);
+  div.addEventListener('input',()=>{
+    const t=skTexts.find(t=>t.id===id);
+    if(t)t.text=div.innerText;
+  });
+  return div;
+}
+
+function onTxtMouseDown(e){
+  const div=e.currentTarget;
+  selectTxtBox(div.getAttribute('data-skid'));
+  if(skTool!=='move')return;
+  e.preventDefault();e.stopPropagation();
+  startDragTxt(div,e.clientX,e.clientY);
+}
+function onTxtTouchStart(e){
+  const div=e.currentTarget;
+  selectTxtBox(div.getAttribute('data-skid'));
+  if(skTool!=='move')return;
+  e.preventDefault();e.stopPropagation();
+  const t=e.touches[0];
+  startDragTxt(div,t.clientX,t.clientY);
+}
+function startDragTxt(div,cx,cy){
+  skDragTxt=div;
+  const r=div.getBoundingClientRect();
+  const wr=skTextLayer.getBoundingClientRect();
+  skDragOx=cx-(r.left-wr.left);
+  skDragOy=cy-(r.top-wr.top);
+}
+
+document.addEventListener('mousemove',e=>{
+  if(!skDragTxt)return;
+  const wr=skTextLayer.getBoundingClientRect();
+  const nx=e.clientX-wr.left-skDragOx;
+  const ny=e.clientY-wr.top-skDragOy;
+  skDragTxt.style.left=Math.max(0,nx)+'px';
+  skDragTxt.style.top=Math.max(0,ny)+'px';
+  // sync to skTexts
+  const id=skDragTxt.getAttribute('data-skid');
+  const t=skTexts.find(t=>t.id===id);
+  if(t){t.x=Math.max(0,nx);t.y=Math.max(0,ny);}
+});
+document.addEventListener('touchmove',e=>{
+  if(!skDragTxt)return;
+  e.preventDefault();
+  const wr=skTextLayer.getBoundingClientRect();
+  const tc=e.touches[0];
+  const nx=tc.clientX-wr.left-skDragOx;
+  const ny=tc.clientY-wr.top-skDragOy;
+  skDragTxt.style.left=Math.max(0,nx)+'px';
+  skDragTxt.style.top=Math.max(0,ny)+'px';
+  const id=skDragTxt.getAttribute('data-skid');
+  const t=skTexts.find(t=>t.id===id);
+  if(t){t.x=Math.max(0,nx);t.y=Math.max(0,ny);}
+},{passive:false});
+document.addEventListener('mouseup',()=>{skDragTxt=null;});
+document.addEventListener('touchend',()=>{skDragTxt=null;});
+
+// ── DRAWING ───────────────────────────────────
+function getPos(e){
+  const r=skCanvas.getBoundingClientRect();
+  const src=e.touches?e.touches[0]:e;
+  return{x:src.clientX-r.left,y:src.clientY-r.top};
+}
+
+function skPointerDown(e){
+  selectTxtBox(null); // deselect on canvas click
+  if(skTool==='text'){
+    e.preventDefault();
+    const {x,y}=getPos(e);
+    addTextBox(x,y);
+    return;
+  }
+  e.preventDefault();
+  skDrawing=true;
+  const {x,y}=getPos(e);
+  skStartX=x;skStartY=y;
+  if(skTool==='draw'||skTool==='erase'){
+    skCtx.beginPath();skCtx.moveTo(x,y);
+  } else {
+    skSnapshot=skCtx.getImageData(0,0,skCanvas.width,skCanvas.height);
+  }
+}
+
+function skPointerMove(e){
+  if(!skDrawing)return;
+  e.preventDefault();
+  const {x,y}=getPos(e);
+  const sz=parseInt(document.getElementById('skSize').value)||3;
+  if(skTool==='draw'){
+    skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;
+    skCtx.lineCap='round';skCtx.lineJoin='round';
+    skCtx.lineTo(x,y);skCtx.stroke();
+  } else if(skTool==='erase'){
+    skCtx.strokeStyle='#fff';skCtx.lineWidth=sz*5;
+    skCtx.lineCap='round';skCtx.lineJoin='round';
+    skCtx.lineTo(x,y);skCtx.stroke();
+  } else {
+    skCtx.putImageData(skSnapshot,0,0);
+    skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;
+    skCtx.lineCap='round';skCtx.lineJoin='round';
+    skCtx.beginPath();
+    if(skTool==='line'){
+      skCtx.moveTo(skStartX,skStartY);skCtx.lineTo(x,y);skCtx.stroke();
+    } else if(skTool==='rect'){
+      skCtx.strokeRect(skStartX,skStartY,x-skStartX,y-skStartY);
+    } else if(skTool==='tri'){
+      skCtx.moveTo(skStartX+(x-skStartX)/2,skStartY);
+      skCtx.lineTo(skStartX,y);skCtx.lineTo(x,y);
+      skCtx.closePath();skCtx.stroke();
+    }
+  }
+}
+
+function skPointerUp(e){
+  if(!skDrawing)return;
+  skDrawing=false;
+  skCtx.beginPath();
+  pushHistory();
+}
+
+skCanvas.addEventListener('mousedown',skPointerDown);
+skCanvas.addEventListener('mousemove',skPointerMove);
+skCanvas.addEventListener('mouseup',skPointerUp);
+skCanvas.addEventListener('mouseleave',skPointerUp);
+skCanvas.addEventListener('touchstart',skPointerDown,{passive:false});
+skCanvas.addEventListener('touchmove',skPointerMove,{passive:false});
+skCanvas.addEventListener('touchend',skPointerUp);
+
+// ══════════════════════════════════════════════
+//  INIT
+// ══════════════════════════════════════════════
+loadData();
+renderAll();
+</script>
+</body>
+</html>
