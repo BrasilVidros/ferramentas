@@ -231,6 +231,7 @@ body{font-family:'Lato',sans-serif;background:#eef3fb;height:100vh;overflow:hidd
       <div class="sk-btn" onclick="changeFontSize(+2)" title="Aumentar texto" id="sk-txt-plus">A⁺</div>
       <div class="sk-btn" onclick="rotateSelectedText(-15)" title="Girar -15°">↺</div>
       <div class="sk-btn" onclick="rotateSelectedText(+15)" title="Girar +15°">↻</div>
+      <div class="sk-btn danger" onclick="deleteSelectedText()" title="Apagar caixa de texto selecionada">🗑 Txt</div>
       <div class="sk-btn" id="sk-tool-erase" onclick="setTool('erase')" title="Borracha">⬜ Apagar</div>
       <div class="sk-sep"></div>
       <div class="sk-color sel" style="background:#1a5fa8;" onclick="setColor('#1a5fa8',this)" title="Azul"></div>
@@ -282,7 +283,8 @@ const GLASS_GROUPS=[
   {label:"COMUM",types:["BRONZE 04MM - COMUM","BRONZE 06MM - COMUM","CANELADO 04MM - COMUM","FUMÊ 04MM - COMUM","FUMÊ 05MM - COMUM","FUMÊ 06MM - COMUM","INCOLOR 03MM - COMUM","INCOLOR 04MM - COMUM","INCOLOR 05MM - COMUM","INCOLOR 06MM - COMUM","INCOLOR 08MM - COMUM","INCOLOR 10MM - COMUM","INCOLOR 12MM - COMUM","INCOLOR 15MM - COMUM","INCOLOR 19MM - COMUM","MINI-BOREAL 04MM - COMUM","PONTILHADO 04MM - COMUM","VERDE 04MM - COMUM","VERDE 05MM - COMUM","VERDE 06MM - COMUM","VERDE 08MM - COMUM","VERDE 10MM - COMUM"]},
   {label:"ESPELHO",types:["ESPELHO 04MM - BISOTÊ","ESPELHO 06MM - BISOTÊ","ESPELHO 04MM - LAPIDADO","ESPELHO 06MM - LAPIDADO"]},
   {label:"LAMINADO",types:["LAMINADO 4+4 CHAMPAGNE","LAMINADO FUMÊ 3+3 - LAPIDADO","LAMINADO FUMÊ 4+4 - LAPIDADO","LAMINADO FUMÊ 5+5 - LAPIDADO","LAMINADO INCOLOR 3+3 - LAPIDADO","LAMINADO INCOLOR 4+4 - LAPIDADO","LAMINADO INCOLOR 5+5 - LAPIDADO","LAMINADO VERDE 3+3 - LAPIDADO","LAMINADO VERDE 4+4 - LAPIDADO","LAMINADO VERDE 5+5 - LAPIDADO"]},
-  {label:"TEMPERADO",types:["ACIDATO","ANTILOPE 08MM - TEMPERADO","ASTRAL PLUS 08MM - TEMPERADO","AZUL 08MM - TEMPERADO","BOX INCOLOR 08MM - TEMPERADO","BOX VERDE 08MM - TEMPERADO","BRONZE 06MM - TEMPERADO","BRONZE 08MM - TEMPERADO","BRONZE 10MM - TEMPERADO","FUMÊ 06MM - TEMPERADO","FUMÊ 08MM - TEMPERADO","FUMÊ 10MM - TEMPERADO","INCOLOR 06MM - TEMPERADO","INCOLOR 08MM - TEMPERADO","INCOLOR 10MM - TEMPERADO","INCOLOR 12MM - TEMPERADO","PELE DE VIDRO REFLETIVO","PONTILHADO 08MM - TEMPERADO","PONTILHADO 10MM - TEMPERADO","QUADRATO 08MM - TEMPERADO","VERDE 06MM - TEMPERADO","VERDE 08MM - TEMPERADO"]}
+  {label:"TEMPERADO",types:["ACIDATO","ANTILOPE 08MM - TEMPERADO","ASTRAL PLUS 08MM - TEMPERADO","AZUL 08MM - TEMPERADO","BOX INCOLOR 08MM - TEMPERADO","BOX VERDE 08MM - TEMPERADO","BRONZE 06MM - TEMPERADO","BRONZE 08MM - TEMPERADO","BRONZE 10MM - TEMPERADO","FUMÊ 06MM - TEMPERADO","FUMÊ 08MM - TEMPERADO","FUMÊ 10MM - TEMPERADO","INCOLOR 06MM - TEMPERADO","INCOLOR 08MM - TEMPERADO","INCOLOR 10MM - TEMPERADO","INCOLOR 12MM - TEMPERADO","PELE DE VIDRO REFLETIVO","PONTILHADO 08MM - TEMPERADO","PONTILHADO 10MM - TEMPERADO","QUADRATO 08MM - TEMPERADO","VERDE 06MM - TEMPERADO","VERDE 08MM - TEMPERADO"]},
+  {label:"PORTAS",types:["Porta de Giro","Porta de Correr","Porta Dupla","Reposição Porta de Giro","Reposição Porta de Correr","Vidro Fixo"]}
 ];
 function buildSelectOptions(sel){
   let h=`<option value="">— Selecione o tipo —</option>`;
@@ -306,12 +308,12 @@ function loadData(){
   if(!projects.length){
     const p=newProject("Renata Amaral","Obra Renata Amaral");
     p.glasses=[
-      {id:1,w:645,h:1220,obs:"",nota:"",sketch:null},{id:2,w:645,h:955,obs:"",nota:"",sketch:null},
-      {id:3,w:645,h:1145,obs:"",nota:"",sketch:null},{id:4,w:645,h:1155,obs:"",nota:"",sketch:null},
-      {id:5,w:645,h:1155,obs:"",nota:"",sketch:null},{id:6,w:645,h:1110,obs:"",nota:"",sketch:null},
-      {id:7,w:645,h:1160,obs:"",nota:"",sketch:null},{id:8,w:645,h:1135,obs:"",nota:"",sketch:null},
-      {id:9,w:645,h:1140,obs:"",nota:"",sketch:null},{id:10,w:645,h:1135,obs:"",nota:"",sketch:null},
-      {id:11,w:645,h:1265,obs:"LAMINADO INCOLOR 4+4 - LAPIDADO",nota:"",sketch:null},{id:12,w:645,h:1265,obs:"LAMINADO INCOLOR 4+4 - LAPIDADO",nota:"",sketch:null},
+      {id:1,w:645,h:1220,obs:"",nota:"",lado:"",modelo:"",sketch:null},{id:2,w:645,h:955,obs:"",nota:"",lado:"",modelo:"",sketch:null},
+      {id:3,w:645,h:1145,obs:"",nota:"",lado:"",modelo:"",sketch:null},{id:4,w:645,h:1155,obs:"",nota:"",lado:"",modelo:"",sketch:null},
+      {id:5,w:645,h:1155,obs:"",nota:"",lado:"",modelo:"",sketch:null},{id:6,w:645,h:1110,obs:"",nota:"",lado:"",modelo:"",sketch:null},
+      {id:7,w:645,h:1160,obs:"",nota:"",lado:"",modelo:"",sketch:null},{id:8,w:645,h:1135,obs:"",nota:"",lado:"",modelo:"",sketch:null},
+      {id:9,w:645,h:1140,obs:"",nota:"",lado:"",modelo:"",sketch:null},{id:10,w:645,h:1135,obs:"",nota:"",lado:"",modelo:"",sketch:null},
+      {id:11,w:645,h:1265,obs:"LAMINADO INCOLOR 4+4 - LAPIDADO",nota:"",lado:"",modelo:"",sketch:null},{id:12,w:645,h:1265,obs:"LAMINADO INCOLOR 4+4 - LAPIDADO",nota:"",lado:"",modelo:"",sketch:null},
     ];
     projects.push(p);activeId=p.id;persist();
   }
@@ -412,6 +414,26 @@ function buildEdit(p){
           </select>
         </label>
         ${g.obs?`<div class="gc-obs-tag"><span>●</span>${g.obs}</div>`:''}
+        ${['Porta de Giro','Porta de Correr','Porta Dupla','Reposição Porta de Giro','Reposição Porta de Correr','Vidro Fixo'].includes(g.obs)?`
+        <label><span class="gc-lbl">LADO DE ABERTURA</span>
+          <select class="gc-inp" style="cursor:pointer;" onchange="updGlass('${p.id}',${g.id},'lado',this.value)">
+            <option value="" ${!g.lado?'selected':''}>— Selecione o lado —</option>
+            <option value="Direito" ${g.lado==='Direito'?'selected':''}>→ Direito</option>
+            <option value="Esquerdo" ${g.lado==='Esquerdo'?'selected':''}>← Esquerdo</option>
+          </select>
+        </label>
+        ${g.lado?`<div style="background:${g.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${g.lado==='Direito'?'#a5d6a7':'#90caf9'};border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;color:${g.lado==='Direito'?'#2e7d32':'#1565c0'};display:flex;align-items:center;gap:4px;">${g.lado==='Direito'?'→':'←'} Abertura ${g.lado}</div>`:''}`:''}
+        ${['Porta de Giro','Porta de Correr','Porta Dupla','Reposição Porta de Giro','Reposição Porta de Correr','Vidro Fixo'].includes(g.obs)?`
+        <label><span class="gc-lbl">MODELO DO VIDRO</span>
+          <select class="gc-inp" style="cursor:pointer;" onchange="updGlass('${p.id}',${g.id},'modelo',this.value)">
+            <option value="" ${!g.modelo?'selected':''}>— Selecione o modelo —</option>
+            <option value="Vidro Comum" ${g.modelo==='Vidro Comum'?'selected':''}>Vidro Comum</option>
+            <option value="Vidro Laminado" ${g.modelo==='Vidro Laminado'?'selected':''}>Vidro Laminado</option>
+            <option value="Vidro Temperado" ${g.modelo==='Vidro Temperado'?'selected':''}>Vidro Temperado</option>
+            <option value="Espelho" ${g.modelo==='Espelho'?'selected':''}>Espelho</option>
+          </select>
+        </label>
+        ${g.modelo?`<div style="background:#f3f0ff;border:1px solid #c4b5fd;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;color:#5b21b6;display:flex;align-items:center;gap:4px;">🪟 ${esc(g.modelo)}</div>`:''}`:''}
         <label><span class="gc-lbl">OBSERVAÇÃO</span>
           <input class="gc-inp" type="text" value="${esc(g.nota||'')}" placeholder="Ex: recorte, furo, chanfro…" oninput="updGlass('${p.id}',${g.id},'nota',this.value)">
         </label>
@@ -462,6 +484,8 @@ function buildPreview(p){
             <div style="flex:1;height:1px;background:#1a5fa8;"></div>
           </div>
           ${g.obs?`<div style="background:#fff0f0;border:1px solid #f5b8b8;border-radius:5px;padding:2px 5px;font-size:8px;color:#c04040;font-weight:700;text-align:center;width:100%;line-height:1.3;">● ${esc(g.obs)}</div>`:`<div style="height:18px;"></div>`}
+          ${g.lado?`<div style="background:${g.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${g.lado==='Direito'?'#a5d6a7':'#90caf9'};border-radius:5px;padding:2px 5px;font-size:8px;color:${g.lado==='Direito'?'#2e7d32':'#1565c0'};font-weight:700;text-align:center;width:100%;line-height:1.3;">${g.lado==='Direito'?'→':'←'} ${g.lado}</div>`:''}
+          ${g.modelo?`<div style="background:#f3f0ff;border:1px solid #c4b5fd;border-radius:5px;padding:2px 5px;font-size:8px;color:#5b21b6;font-weight:700;text-align:center;width:100%;line-height:1.3;">🪟 ${esc(g.modelo)}</div>`:''}
           ${g.nota?`<div style="background:#f0f6ff;border:1px solid #b0c8e8;border-radius:5px;padding:2px 5px;font-size:8px;color:#1a5fa8;font-weight:600;text-align:center;width:100%;line-height:1.3;">📝 ${esc(g.nota)}</div>`:''}
           ${g.sketch?`<div style="background:#f5f3ff;border:1px solid #c4b5fd;border-radius:5px;padding:2px 5px;font-size:8px;color:#6d28d9;font-weight:700;text-align:center;width:100%;">✏️ Forma especial</div>`:''}
         </div>`;
@@ -489,7 +513,7 @@ function setTab(t){tab=t;renderAll();}
 function updField(field,val){const p=active();if(!p)return;p[field]=val;renderSB();scheduleSave();}
 function updGlass(pid,id,field,val){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.map(g=>g.id===id?{...g,[field]:val}:g);renderInfoBar();scheduleSave();}
 function rmGlass(pid,id){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.filter(g=>g.id!==id);renderAll();scheduleSave();}
-function addGlass(pid){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=[...p.glasses,{id:gid++,w:645,h:1000,obs:"",nota:"",sketch:null}];renderAll();scheduleSave();}
+function addGlass(pid){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=[...p.glasses,{id:gid++,w:645,h:1000,obs:"",nota:"",lado:"",modelo:"",sketch:null}];renderAll();scheduleSave();}
 function clearSketch(pid,id){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.map(g=>g.id===id?{...g,sketch:null}:g);renderAll();scheduleSave();}
 function delProj(e,id){
   e.stopPropagation();
@@ -566,9 +590,16 @@ function openSketch(pid,gid_,w,h){
   drawGrid();
   if(g?.sketch){
     const img=new Image();
-    img.onload=()=>{skCtx.drawImage(img,0,0,skCanvas.width,skCanvas.height);pushHistory();};
+    img.onload=()=>{
+      skCtx.clearRect(0,0,skCanvas.width,skCanvas.height);
+      skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
+      skCtx.drawImage(img,0,0,skCanvas.width,skCanvas.height);
+      skHistory=[];
+      pushHistory();
+    };
     img.src=g.sketch;
   } else {
+    drawGrid();
     pushHistory();
   }
   document.getElementById('skDimsLabel').textContent=`Peça: ${w} × ${h} mm`;
@@ -748,6 +779,14 @@ function rotateSelectedText(delta){
   t.angle=(t.angle||0)+delta;
   const div=document.getElementById(t.id);
   if(div)applyTxtTransform(div,t);
+}
+
+function deleteSelectedText(){
+  if(!skSelectedTxt)return;
+  const div=document.getElementById(skSelectedTxt);
+  if(div)div.remove();
+  skTexts=skTexts.filter(t=>t.id!==skSelectedTxt);
+  skSelectedTxt=null;
 }
 
 function addTextBox(x,y){
