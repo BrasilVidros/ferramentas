@@ -56,6 +56,7 @@ body{font-family:'Lato',sans-serif;background:#eef3fb;height:100vh;overflow:hidd
 .edit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:16px;}
 .gc{background:#fff;border-radius:14px;box-shadow:0 2px 12px rgba(30,80,140,.09);border:1.5px solid #dde8f5;padding:16px 14px 12px;display:flex;flex-direction:column;gap:9px;}
 .gc.has-sketch{border-color:#a78bfa;box-shadow:0 2px 12px rgba(109,40,217,.15);}
+.gc.gc-porta{border-color:#b0c8e8;border-top:3px solid #1a5fa8;}
 .gc-top{display:flex;align-items:center;justify-content:space-between;}
 .badge{background:#1a5fa8;color:#fff;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;flex-shrink:0;}
 .gc-rm{background:none;border:none;cursor:pointer;color:#c0c8d8;font-size:17px;transition:color .15s;padding:2px 4px;line-height:1;}
@@ -279,20 +280,31 @@ body{font-family:'Lato',sans-serif;background:#eef3fb;height:100vh;overflow:hidd
 // ══════════════════════════════════════════════
 //  GLASS TYPES
 // ══════════════════════════════════════════════
-const GLASS_GROUPS=[
+const PORTA_TYPES = ['Porta de Giro','Porta de Correr','Porta Dupla','Reposição Porta de Giro','Reposição Porta de Correr','Vidro Fixo'];
+
+const MODELO_GROUPS = [
   {label:"COMUM",types:["BRONZE 04MM - COMUM","BRONZE 06MM - COMUM","CANELADO 04MM - COMUM","FUMÊ 04MM - COMUM","FUMÊ 05MM - COMUM","FUMÊ 06MM - COMUM","INCOLOR 03MM - COMUM","INCOLOR 04MM - COMUM","INCOLOR 05MM - COMUM","INCOLOR 06MM - COMUM","INCOLOR 08MM - COMUM","INCOLOR 10MM - COMUM","INCOLOR 12MM - COMUM","INCOLOR 15MM - COMUM","INCOLOR 19MM - COMUM","MINI-BOREAL 04MM - COMUM","PONTILHADO 04MM - COMUM","VERDE 04MM - COMUM","VERDE 05MM - COMUM","VERDE 06MM - COMUM","VERDE 08MM - COMUM","VERDE 10MM - COMUM"]},
   {label:"ESPELHO",types:["ESPELHO 04MM - BISOTÊ","ESPELHO 06MM - BISOTÊ","ESPELHO 04MM - LAPIDADO","ESPELHO 06MM - LAPIDADO"]},
   {label:"LAMINADO",types:["LAMINADO 4+4 CHAMPAGNE","LAMINADO FUMÊ 3+3 - LAPIDADO","LAMINADO FUMÊ 4+4 - LAPIDADO","LAMINADO FUMÊ 5+5 - LAPIDADO","LAMINADO INCOLOR 3+3 - LAPIDADO","LAMINADO INCOLOR 4+4 - LAPIDADO","LAMINADO INCOLOR 5+5 - LAPIDADO","LAMINADO VERDE 3+3 - LAPIDADO","LAMINADO VERDE 4+4 - LAPIDADO","LAMINADO VERDE 5+5 - LAPIDADO"]},
-  {label:"TEMPERADO",types:["ACIDATO","ANTILOPE 08MM - TEMPERADO","ASTRAL PLUS 08MM - TEMPERADO","AZUL 08MM - TEMPERADO","BOX INCOLOR 08MM - TEMPERADO","BOX VERDE 08MM - TEMPERADO","BRONZE 06MM - TEMPERADO","BRONZE 08MM - TEMPERADO","BRONZE 10MM - TEMPERADO","FUMÊ 06MM - TEMPERADO","FUMÊ 08MM - TEMPERADO","FUMÊ 10MM - TEMPERADO","INCOLOR 06MM - TEMPERADO","INCOLOR 08MM - TEMPERADO","INCOLOR 10MM - TEMPERADO","INCOLOR 12MM - TEMPERADO","PELE DE VIDRO REFLETIVO","PONTILHADO 08MM - TEMPERADO","PONTILHADO 10MM - TEMPERADO","QUADRATO 08MM - TEMPERADO","VERDE 06MM - TEMPERADO","VERDE 08MM - TEMPERADO"]},
-  {label:"PORTAS",types:["Porta de Giro","Porta de Correr","Porta Dupla","Reposição Porta de Giro","Reposição Porta de Correr","Vidro Fixo"]}
+  {label:"TEMPERADO",types:["ACIDATO","ANTILOPE 08MM - TEMPERADO","ASTRAL PLUS 08MM - TEMPERADO","AZUL 08MM - TEMPERADO","BOX INCOLOR 08MM - TEMPERADO","BOX VERDE 08MM - TEMPERADO","BRONZE 06MM - TEMPERADO","BRONZE 08MM - TEMPERADO","BRONZE 10MM - TEMPERADO","FUMÊ 06MM - TEMPERADO","FUMÊ 08MM - TEMPERADO","FUMÊ 10MM - TEMPERADO","INCOLOR","INCOLOR 06MM - TEMPERADO","INCOLOR 08MM - TEMPERADO","INCOLOR 10MM - TEMPERADO","INCOLOR 12MM - TEMPERADO","PELE DE VIDRO REFLETIVO","PONTILHADO 08MM - TEMPERADO","PONTILHADO 10MM - TEMPERADO","QUADRATO 08MM - TEMPERADO","VERDE 06MM - TEMPERADO","VERDE 08MM - TEMPERADO"]}
 ];
-function buildSelectOptions(sel){
-  let h=`<option value="">— Selecione o tipo —</option>`;
-  GLASS_GROUPS.forEach(g=>{
+
+const GLASS_GROUPS = MODELO_GROUPS;
+
+function buildModeloOptions(sel){
+  let h='<option value="">— Selecione o modelo —</option>';
+  MODELO_GROUPS.forEach(g=>{
     h+=`<optgroup label="── ${g.label} ──">`;
     g.types.forEach(t=>h+=`<option value="${t}" ${t===sel?'selected':''}>${t}</option>`);
-    h+=`</optgroup>`;
+    h+='</optgroup>';
   });
+  return h;
+}
+
+
+function buildSelectOptions(sel){
+  let h='<option value="">— Selecione o tipo —</option>';
+  PORTA_TYPES.forEach(t=>h+=`<option value="${t}" ${t===sel?'selected':''}>${t}</option>`);
   return h;
 }
 
@@ -332,6 +344,75 @@ function newProject(client,obra){return{id:'p'+Date.now()+Math.random().toString
 function active(){return projects.find(p=>p.id===activeId)||null;}
 function area(glasses){return glasses.reduce((s,g)=>s+(g.w*g.h)/1e6,0);}
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function isPortaType(t){return PORTA_TYPES.includes(t);}
+
+function doorSVG(tipo, lado){
+  const SW=90, SH=110;
+  const wallT=10, openingX1=wallT+2, openingX2=SW-wallT-2, openingW=openingX2-openingX1;
+  const wallY1=8, wallY2=wallY1+wallT, leafH=3, arcR=openingW;
+  const isCorrer=tipo&&tipo.toLowerCase().includes('correr');
+  const isPivot=tipo&&tipo.toLowerCase().includes('pivotante');
+  const isDupla=tipo&&tipo.toLowerCase().includes('dupla');
+  const isFixo=tipo==='Vidro Fixo';
+  const isEsq=lado==='Esquerdo';
+  const hx=isEsq?openingX1:openingX2;
+  const arcEndX=isEsq?Math.min(openingX1+arcR,SW-2):Math.max(openingX2-arcR,2);
+  const arcEndY=wallY2+arcR;
+  const sweep=isEsq?0:1;
+  let content='';
+
+  if(isFixo){
+    content=`
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX1-wallT}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX2}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX1}" y="${wallY2}" width="${openingW}" height="${leafH*2}" fill="#d8edf8" stroke="#6aacda" stroke-width="1.5"/>
+    <line x1="0" y1="${wallY2+leafH*2+8}" x2="${SW}" y2="${wallY2+leafH*2+8}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <text x="${SW/2}" y="${wallY2+leafH*2+20}" text-anchor="middle" font-size="7" font-family="Oswald,sans-serif" fill="#1a5fa8" font-weight="600">FIXO</text>`;
+  } else if(isCorrer){
+    const pocketW=openingW*0.5;
+    content=`
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX1}" y="${wallY1}" width="${pocketW}" height="${wallT}" fill="#e8e0d5" stroke="#9c6b3c" stroke-width=".8" stroke-dasharray="2,2"/>
+    <line x1="${openingX1}" y1="${wallY2+6}" x2="${openingX2}" y2="${wallY2+6}" stroke="#9c6b3c" stroke-width="1.5"/>
+    <rect x="${openingX1+pocketW-2}" y="${wallY1+1}" width="${openingW-pocketW+2}" height="${wallT-2}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <line x1="0" y1="${wallY2+14}" x2="${SW}" y2="${wallY2+14}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <text x="${SW/2}" y="${wallY2+26}" text-anchor="middle" font-size="7" font-family="Oswald,sans-serif" fill="#7a5230" font-weight="600">CORRER</text>`;
+  } else if(isDupla){
+    const half=openingW/2;
+    content=`
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX1-wallT}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX2}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX1}" y="${wallY2}" width="${half}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <rect x="${openingX1+half}" y="${wallY2}" width="${half}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.2"/>
+    <path d="M${openingX1} ${wallY2+leafH} A${half} ${half} 0 0 1 ${openingX1+half} ${wallY2+leafH+half}" fill="rgba(26,95,168,.06)" stroke="#1a5fa8" stroke-width="1" stroke-dasharray="3,2"/>
+    <path d="M${openingX2} ${wallY2+leafH} A${half} ${half} 0 0 0 ${openingX2-half} ${wallY2+leafH+half}" fill="rgba(26,95,168,.06)" stroke="#1a5fa8" stroke-width="1" stroke-dasharray="3,2"/>
+    <circle cx="${openingX1}" cy="${wallY2+2}" r="1.5" fill="#9c6b3c"/>
+    <circle cx="${openingX2}" cy="${wallY2+2}" r="1.5" fill="#9c6b3c"/>
+    <line x1="0" y1="${wallY2+half+10}" x2="${SW}" y2="${wallY2+half+10}" stroke="#5c3d1e" stroke-width="1.5"/>
+    <text x="${SW/2}" y="${wallY2+half+22}" text-anchor="middle" font-size="7" font-family="Oswald,sans-serif" fill="#7a5230" font-weight="600">DUPLA</text>`;
+  } else {
+    // swing door
+    content=`
+    <rect x="0" y="${wallY1}" width="${SW}" height="${wallT}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <line x1="4" y1="${wallY1}" x2="${wallT+6}" y2="${wallY2}" stroke="#9c8a7a" stroke-width=".5"/>
+    <line x1="10" y1="${wallY1}" x2="${wallT+12}" y2="${wallY2}" stroke="#9c8a7a" stroke-width=".5"/>
+    <rect x="${openingX1-wallT}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX2}" y="${wallY1}" width="${wallT}" height="${wallT+4}" fill="#d8cfc4" stroke="#5c3d1e" stroke-width="1"/>
+    <rect x="${openingX1}" y="${wallY2}" width="${openingW}" height="${leafH}" fill="#f0e6d3" stroke="#7a5230" stroke-width="1.5"/>
+    <circle cx="${hx}" cy="${wallY2+leafH/2}" r="2" fill="#9c6b3c" stroke="#5c3d1e" stroke-width=".5"/>
+    <path d="M${hx} ${wallY2+leafH} A${arcR} ${arcR} 0 0 ${sweep} ${arcEndX} ${arcEndY}" fill="rgba(26,95,168,.07)" stroke="#1a5fa8" stroke-width="1.2" stroke-dasharray="4,2.5"/>
+    <line x1="${hx}" y1="${wallY2+leafH}" x2="${hx}" y2="${arcEndY}" stroke="#1a5fa8" stroke-width="1" stroke-dasharray="3,2" opacity=".5"/>
+    <line x1="0" y1="${arcEndY+6}" x2="${SW}" y2="${arcEndY+6}" stroke="#5c3d1e" stroke-width="1.5"/>
+    ${lado?`<text x="${isEsq?openingX1+4:openingX2-4}" y="${wallY2+leafH+12}" text-anchor="${isEsq?'start':'end'}" font-size="7" font-family="Oswald,sans-serif" fill="#1a5fa8" font-weight="600">${isEsq?'⬅ ESQ':'DIR ➡'}</text>`:''}`;
+  }
+  return `<svg width="${SW}" height="${SH}" viewBox="0 0 ${SW} ${SH}" xmlns="http://www.w3.org/2000/svg">
+    <text x="${SW-2}" y="7" text-anchor="end" font-size="6" font-family="Oswald,sans-serif" fill="#9c6b3c" opacity=".7">PLANTA</text>
+    ${content}
+  </svg>`;
+}
+
 function glassSVG(w,h,pw){
   const r=h/Math.max(w,1),ph=Math.max(40,Math.min(110,Math.round(pw*r)));
   return `<svg width="${pw}" height="${ph}" viewBox="0 0 ${pw} ${ph}" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="gg${pw}" x1="0" y1="0" x2="1" y2="1"><stop offset="60%" stop-color="#d8edf8"/><stop offset="100%" stop-color="#b8d8ef"/></linearGradient></defs><rect x="3" y="3" width="${pw-3}" height="${ph-3}" fill="#b8cfe0" rx="2"/><rect width="${pw-3}" height="${ph-3}" fill="url(#gg${pw})" stroke="#6aacda" stroke-width="2" rx="2"/><polygon points="2,2 16,2 2,24" fill="rgba(255,255,255,0.45)"/></svg>`;
@@ -391,16 +472,23 @@ function renderContent(){
 
 function buildEdit(p){
   return`<div class="edit-grid">
-    ${p.glasses.map((g,i)=>`
-      <div class="gc${g.sketch?' has-sketch':''}">
+    ${p.glasses.map((g,i)=>{
+      const isPorta=isPortaType(g.obs);
+      const needsLado=isPorta&&g.obs!=='Vidro Fixo';
+      return`
+      <div class="gc${g.sketch?' has-sketch':''}${isPorta?' gc-porta':''}">
         <div class="gc-top"><div class="badge">${i+1}</div><button class="gc-rm" onclick="rmGlass('${p.id}',${g.id})">✕</button></div>
+
+        <!-- PREVIEW -->
         <div class="gc-preview">
           ${g.sketch
             ? `<img class="sketch-thumb" src="${g.sketch}" style="width:100%;max-height:160px;object-fit:contain;border-radius:6px;border:1px solid #ede9fe;" alt="Esboço">`
-            : glassSVG(g.w,g.h,60)
+            : isPorta ? doorSVG(g.obs,g.lado) : glassSVG(g.w,g.h,60)
           }
         </div>
-        ${!g.sketch?`<div class="gc-dims">
+
+        <!-- DIMS: only for non-porta -->
+        ${!isPorta&&!g.sketch?`<div class="gc-dims">
           <label style="flex:1;"><span class="gc-lbl">LARGURA (mm)</span>
             <input class="gc-inp" type="number" value="${g.w}" oninput="updGlass('${p.id}',${g.id},'w',+this.value)">
           </label>
@@ -408,13 +496,17 @@ function buildEdit(p){
             <input class="gc-inp" type="number" value="${g.h}" oninput="updGlass('${p.id}',${g.id},'h',+this.value)">
           </label>
         </div>`:''}
+
+        <!-- TIPO (porta types only) -->
         <label><span class="gc-lbl">TIPO</span>
           <select class="gc-inp" style="cursor:pointer;" onchange="updGlass('${p.id}',${g.id},'obs',this.value)">
             ${buildSelectOptions(g.obs)}
           </select>
         </label>
-        ${g.obs?`<div class="gc-obs-tag"><span>●</span>${g.obs}</div>`:''}
-        ${['Porta de Giro','Porta de Correr','Porta Dupla','Reposição Porta de Giro','Reposição Porta de Correr','Vidro Fixo'].includes(g.obs)?`
+        ${g.obs?`<div class="gc-obs-tag"><span>🚪</span>${g.obs}</div>`:''}
+
+        <!-- LADO: only for porta types that are NOT vidro fixo -->
+        ${needsLado?`
         <label><span class="gc-lbl">LADO DE ABERTURA</span>
           <select class="gc-inp" style="cursor:pointer;" onchange="updGlass('${p.id}',${g.id},'lado',this.value)">
             <option value="" ${!g.lado?'selected':''}>— Selecione o lado —</option>
@@ -423,32 +515,46 @@ function buildEdit(p){
           </select>
         </label>
         ${g.lado?`<div style="background:${g.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${g.lado==='Direito'?'#a5d6a7':'#90caf9'};border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;color:${g.lado==='Direito'?'#2e7d32':'#1565c0'};display:flex;align-items:center;gap:4px;">${g.lado==='Direito'?'→':'←'} Abertura ${g.lado}</div>`:''}`:''}
-        ${['Porta de Giro','Porta de Correr','Porta Dupla','Reposição Porta de Giro','Reposição Porta de Correr','Vidro Fixo'].includes(g.obs)?`
+
+        <!-- MODELO: for all porta types -->
+        ${isPorta?`
         <label><span class="gc-lbl">MODELO DO VIDRO</span>
           <select class="gc-inp" style="cursor:pointer;" onchange="updGlass('${p.id}',${g.id},'modelo',this.value)">
-            <option value="" ${!g.modelo?'selected':''}>— Selecione o modelo —</option>
-            <option value="Vidro Comum" ${g.modelo==='Vidro Comum'?'selected':''}>Vidro Comum</option>
-            <option value="Vidro Laminado" ${g.modelo==='Vidro Laminado'?'selected':''}>Vidro Laminado</option>
-            <option value="Vidro Temperado" ${g.modelo==='Vidro Temperado'?'selected':''}>Vidro Temperado</option>
-            <option value="Espelho" ${g.modelo==='Espelho'?'selected':''}>Espelho</option>
+            ${buildModeloOptions(g.modelo)}
           </select>
         </label>
-        ${g.modelo?`<div style="background:#f3f0ff;border:1px solid #c4b5fd;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;color:#5b21b6;display:flex;align-items:center;gap:4px;">🪟 ${esc(g.modelo)}</div>`:''}`:''}
+        ${g.modelo?`<div style="background:#f0f6ff;border:1px solid #b0c8e8;border-radius:6px;padding:4px 9px;font-size:10px;font-weight:700;color:#1a5fa8;display:flex;align-items:center;gap:4px;">🪟 ${esc(g.modelo)}</div>`:''}`:''}
+
+        <!-- DIMS for porta too (largura/altura vão) -->
+        ${isPorta?`<div class="gc-dims">
+          <label style="flex:1;"><span class="gc-lbl">LARG. VÃO (mm)</span>
+            <input class="gc-inp" type="number" value="${g.w}" oninput="updGlass('${p.id}',${g.id},'w',+this.value)">
+          </label>
+          <label style="flex:1;"><span class="gc-lbl">ALT. VÃO (mm)</span>
+            <input class="gc-inp" type="number" value="${g.h}" oninput="updGlass('${p.id}',${g.id},'h',+this.value)">
+          </label>
+        </div>`:''}
+
+        <!-- OBSERVAÇÃO -->
         <label><span class="gc-lbl">OBSERVAÇÃO</span>
-          <input class="gc-inp" type="text" value="${esc(g.nota||'')}" placeholder="Ex: recorte, furo, chanfro…" oninput="updGlass('${p.id}',${g.id},'nota',this.value)">
+          <input class="gc-inp" type="text" value="${esc(g.nota||'')}" placeholder="${isPorta?'Ex: cor, acabamento, medida especial…':'Ex: recorte, furo, chanfro…'}" oninput="updGlass('${p.id}',${g.id},'nota',this.value)">
         </label>
         ${g.nota?`<div class="gc-nota-tag"><span>📝</span>${esc(g.nota)}</div>`:''}
+
+        <!-- SKETCH -->
         <button class="sketch-btn ${g.sketch?'has':''}" onclick="openSketch('${p.id}',${g.id},${g.w},${g.h})">
           ${g.sketch?'✏️ Editar desenho':'✏️ Desenhar forma especial'}
         </button>
         ${g.sketch?`<button class="gc-inp" style="cursor:pointer;background:#fff5f5;border-color:#f5b8b8;color:#c04040;font-size:11px;padding:4px 8px;" onclick="clearSketch('${p.id}',${g.id})">🗑 Remover desenho</button>`:''}
-      </div>`).join('')}
+      </div>`;
+    }).join('')}
     <div class="add-card" onclick="addGlass('${p.id}')">
       <span style="font-size:34px;line-height:1;">＋</span>
-      <span>Adicionar vidro</span>
+      <span>Adicionar peça</span>
     </div>
   </div>`;
 }
+
 
 function buildPreview(p){
   const a=area(p.glasses);
@@ -469,6 +575,7 @@ function buildPreview(p){
           <div class="badge" style="width:28px;height:28px;font-size:14px;">${i+1}</div>
           ${g.sketch
             ? `<img src="${g.sketch}" style="width:${pw}px;max-height:${ph+20}px;object-fit:contain;border-radius:4px;border:1px solid #ede9fe;" alt="Esboço">`
+            : isPortaType(g.obs) ? `<div style="padding:4px 0;">${doorSVG(g.obs,g.lado)}</div>`
             : `<div style="display:flex;align-items:flex-start;gap:5px;">
                 ${glassSVG(g.w,g.h,pw)}
                 <div style="display:flex;flex-direction:column;align-items:center;height:${ph}px;justify-content:center;">
@@ -484,6 +591,8 @@ function buildPreview(p){
             <div style="flex:1;height:1px;background:#1a5fa8;"></div>
           </div>
           ${g.obs?`<div style="background:#fff0f0;border:1px solid #f5b8b8;border-radius:5px;padding:2px 5px;font-size:8px;color:#c04040;font-weight:700;text-align:center;width:100%;line-height:1.3;">● ${esc(g.obs)}</div>`:`<div style="height:18px;"></div>`}
+          ${g.lado?`<div style="background:${g.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${g.lado==='Direito'?'#a5d6a7':'#90caf9'};border-radius:5px;padding:2px 5px;font-size:8px;color:${g.lado==='Direito'?'#2e7d32':'#1565c0'};font-weight:700;text-align:center;width:100%;line-height:1.3;">${g.lado==='Direito'?'→':'←'} ${g.lado}</div>`:''}
+          ${g.modelo?`<div style="background:#f0f6ff;border:1px solid #b0c8e8;border-radius:5px;padding:2px 5px;font-size:8px;color:#1a5fa8;font-weight:700;text-align:center;width:100%;line-height:1.3;">🪟 ${esc(g.modelo)}</div>`:''}
           ${g.lado?`<div style="background:${g.lado==='Direito'?'#e8f5e9':'#e3f2fd'};border:1px solid ${g.lado==='Direito'?'#a5d6a7':'#90caf9'};border-radius:5px;padding:2px 5px;font-size:8px;color:${g.lado==='Direito'?'#2e7d32':'#1565c0'};font-weight:700;text-align:center;width:100%;line-height:1.3;">${g.lado==='Direito'?'→':'←'} ${g.lado}</div>`:''}
           ${g.modelo?`<div style="background:#f3f0ff;border:1px solid #c4b5fd;border-radius:5px;padding:2px 5px;font-size:8px;color:#5b21b6;font-weight:700;text-align:center;width:100%;line-height:1.3;">🪟 ${esc(g.modelo)}</div>`:''}
           ${g.nota?`<div style="background:#f0f6ff;border:1px solid #b0c8e8;border-radius:5px;padding:2px 5px;font-size:8px;color:#1a5fa8;font-weight:600;text-align:center;width:100%;line-height:1.3;">📝 ${esc(g.nota)}</div>`:''}
@@ -511,7 +620,18 @@ function buildPreview(p){
 function selectProj(id){activeId=id;tab='edit';persist();renderAll();}
 function setTab(t){tab=t;renderAll();}
 function updField(field,val){const p=active();if(!p)return;p[field]=val;renderSB();scheduleSave();}
-function updGlass(pid,id,field,val){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.map(g=>g.id===id?{...g,[field]:val}:g);renderInfoBar();scheduleSave();}
+function updGlass(pid,id,field,val){
+  const p=projects.find(x=>x.id===pid);if(!p)return;
+  p.glasses=p.glasses.map(g=>g.id===id?{...g,[field]:val}:g);
+  // re-render full content when type/side/model changes so conditional fields update
+  if(field==='obs'||field==='lado'||field==='modelo'){
+    renderContent();
+    renderInfoBar();
+  } else {
+    renderInfoBar();
+  }
+  scheduleSave();
+}
 function rmGlass(pid,id){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.filter(g=>g.id!==id);renderAll();scheduleSave();}
 function addGlass(pid){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=[...p.glasses,{id:gid++,w:645,h:1000,obs:"",nota:"",lado:"",modelo:"",sketch:null}];renderAll();scheduleSave();}
 function clearSketch(pid,id){const p=projects.find(x=>x.id===pid);if(!p)return;p.glasses=p.glasses.map(g=>g.id===id?{...g,sketch:null}:g);renderAll();scheduleSave();}
