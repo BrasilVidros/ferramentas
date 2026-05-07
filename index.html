@@ -26,6 +26,7 @@ body{font-family:'Source Sans 3',sans-serif;background:#0d1b2e;min-height:100vh;
 .card-tag{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;padding:2px 8px;border-radius:20px;width:fit-content;}
 .tag-vidros{background:rgba(26,95,168,.3);color:#7ab8f5;}
 .tag-agenda{background:rgba(38,166,154,.2);color:#80cbc4;}
+.tag-gestao{background:rgba(124,58,237,.2);color:#c4b5fd;}
 .card-name{font-family:'Oswald',sans-serif;font-weight:700;font-size:20px;color:#fff;letter-spacing:.5px;line-height:1.1;}
 .card-desc{font-size:12px;color:rgba(255,255,255,.4);line-height:1.5;}
 .card-arrow{margin-top:auto;font-size:16px;color:rgba(255,255,255,.2);transition:color .2s;align-self:flex-end;}
@@ -33,6 +34,8 @@ body{font-family:'Source Sans 3',sans-serif;background:#0d1b2e;min-height:100vh;
 .card-v:hover{border-color:rgba(26,95,168,.6);box-shadow:0 12px 40px rgba(26,95,168,.2);}
 .card-m:hover{border-color:rgba(38,166,154,.5);box-shadow:0 12px 40px rgba(38,166,154,.15);}
 .card-o:hover{border-color:rgba(232,160,32,.5);box-shadow:0 12px 40px rgba(232,160,32,.15);}
+.card-g{border-color:rgba(124,58,237,.25);}
+.card-g:hover{border-color:rgba(124,58,237,.5);box-shadow:0 12px 40px rgba(124,58,237,.15);}
 .footer{text-align:center;margin-top:28px;font-size:11px;color:rgba(255,255,255,.15);letter-spacing:.5px;}
 </style>
 </head>
@@ -63,11 +66,19 @@ body{font-family:'Source Sans 3',sans-serif;background:#0d1b2e;min-height:100vh;
       <div class="card-arrow">→</div>
     </a>
 
-    <a class="card card-v full" href="VidrosEditor.html">
+    <a class="card card-v" href="VidrosEditor.html">
       <div class="card-ico">🪟</div>
       <div class="card-tag tag-vidros">Vidros</div>
       <div class="card-name">VIDROS EDITOR</div>
       <div class="card-desc">Gerencie projetos de vidro. Medidas, tipos, observações e desenho de peças especiais.</div>
+      <div class="card-arrow">→</div>
+    </a>
+
+    <a class="card card-g" href="GestaoObras.html">
+      <div class="card-ico">📊</div>
+      <div class="card-tag tag-gestao">Gestão</div>
+      <div class="card-name">GESTÃO DE OBRAS</div>
+      <div class="card-desc">Controle financeiro por obra. Custos, lucro, margem, relatórios e comparativos por período.</div>
       <div class="card-arrow">→</div>
     </a>
 
