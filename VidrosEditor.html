@@ -256,7 +256,7 @@ body{font-family:'Lato',sans-serif;background:#eef3fb;height:100vh;overflow:hidd
       </div>
       <div class="sk-sep"></div>
       <div class="sk-btn danger" onclick="clearCanvas()">🗑 Limpar</div>
-      <div class="sk-btn danger" onclick="undoSketch()">↩ Desfazer</div>
+      <div class="sk-btn danger" id="sk-undo-btn" onclick="undoSketch()" style="opacity:.35;" title="Desfazer último traço">↩ Desfazer</div>
     </div>
     <div class="sketch-hint">
       <span>💡</span>
@@ -684,154 +684,136 @@ function createProj(){
 // ══════════════════════════════════════════════
 let skPid=null,skGid=null,skW=0,skH=0;
 let skTool='draw',skColor='#1a5fa8',skSize=3;
-let skDrawing=false,skStartX=0,skStartY=0;
-let skSnapshot=null;
+let skDrawing=false,skStartX=0,skStartY=0,skSnapshot=null;
 let skHistory=[];
-// Text boxes: [{id,x,y,text,color,fontSize,el}]
-let skTexts=[];
-let skDragTxt=null,skDragOx=0,skDragOy=0;
+let skTexts=[],skSelectedTxt=null,skTxtCnt=0;
 
 const skModal=document.getElementById('sketchModal');
 const skCanvas=document.getElementById('sketchCanvas');
 const skCtx=skCanvas.getContext('2d');
 const skTextLayer=document.getElementById('skTextLayer');
 
-function openSketch(pid,gid_,w,h){
-  skPid=pid;skGid=gid_;skW=w;skH=h;
-  skTexts=[];
-  skTextLayer.innerHTML='';
-  const wrap=document.getElementById('skCanvasWrap');
-  const cw=Math.max(wrap.clientWidth||600,400);
-  const ch=Math.max(300,Math.round(cw*(h/Math.max(w,1))*0.55));
-  skCanvas.width=cw;
-  skCanvas.height=Math.min(ch,520);
-  skTextLayer.style.width=skCanvas.width+'px';
-  skTextLayer.style.height=skCanvas.height+'px';
-  const p=projects.find(x=>x.id===pid);
-  const g=p?.glasses.find(x=>x.id===gid_);
-  skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
-  drawGrid();
-  if(g?.sketch){
-    const img=new Image();
-    img.onload=()=>{
-      skCtx.clearRect(0,0,skCanvas.width,skCanvas.height);
-      skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
-      skCtx.drawImage(img,0,0,skCanvas.width,skCanvas.height);
-      skHistory=[];
-      pushHistory();
-    };
-    img.src=g.sketch;
-  } else {
-    drawGrid();
-    pushHistory();
-  }
-  document.getElementById('skDimsLabel').textContent=`Peça: ${w} × ${h} mm`;
-  skModal.classList.add('open');
-  setTool('draw');
+// ── GRID on separate canvas ────────────────────────────────────────
+let skGridCanvas=null;
+
+function ensureGridCanvas(){
+  if(skGridCanvas)return;
+  skGridCanvas=document.createElement('canvas');
+  skGridCanvas.style.cssText='position:absolute;inset:0;pointer-events:none;';
+  document.getElementById('skCanvasWrap').appendChild(skGridCanvas);
 }
 
-// ── GRID ──────────────────────────────────────
-function getGridStep(){
-  const sel=document.getElementById('skGridSize');
-  return sel?parseInt(sel.value)||0:20;
-}
 function drawGrid(){
+  ensureGridCanvas();
+  skGridCanvas.width=skCanvas.width;
+  skGridCanvas.height=skCanvas.height;
+  const gc=skGridCanvas.getContext('2d');
   const step=getGridStep();
+  gc.clearRect(0,0,skGridCanvas.width,skGridCanvas.height);
   if(!step)return;
-  skCtx.save();
-  // minor lines
-  skCtx.strokeStyle='rgba(150,190,230,.3)';
-  skCtx.lineWidth=.5;
-  for(let x=0;x<=skCanvas.width;x+=step){skCtx.beginPath();skCtx.moveTo(x,0);skCtx.lineTo(x,skCanvas.height);skCtx.stroke();}
-  for(let y=0;y<=skCanvas.height;y+=step){skCtx.beginPath();skCtx.moveTo(0,y);skCtx.lineTo(skCanvas.width,y);skCtx.stroke();}
-  // major lines every 5 cells
+  gc.strokeStyle='rgba(100,140,200,.18)';gc.lineWidth=.6;
+  for(let x=0;x<=skGridCanvas.width;x+=step){gc.beginPath();gc.moveTo(x,0);gc.lineTo(x,skGridCanvas.height);gc.stroke();}
+  for(let y=0;y<=skGridCanvas.height;y+=step){gc.beginPath();gc.moveTo(0,y);gc.lineTo(skGridCanvas.width,y);gc.stroke();}
   const major=step*5;
-  skCtx.strokeStyle='rgba(100,150,210,.55)';
-  skCtx.lineWidth=1;
-  for(let x=0;x<=skCanvas.width;x+=major){skCtx.beginPath();skCtx.moveTo(x,0);skCtx.lineTo(x,skCanvas.height);skCtx.stroke();}
-  for(let y=0;y<=skCanvas.height;y+=major){skCtx.beginPath();skCtx.moveTo(0,y);skCtx.lineTo(skCanvas.width,y);skCtx.stroke();}
-  // labels on major lines
-  skCtx.fillStyle='rgba(100,150,210,.7)';
-  skCtx.font='9px Lato,sans-serif';
-  skCtx.textAlign='left';
-  for(let x=major;x<skCanvas.width;x+=major){skCtx.fillText(x+'px',x+2,10);}
-  for(let y=major;y<skCanvas.height;y+=major){skCtx.fillText(y+'px',2,y-2);}
-  skCtx.restore();
-}
-function redrawGrid(){
-  // repaint grid on base (non-destructive: restore history bottom then redraw)
-  if(skHistory.length){
-    skCtx.putImageData(skHistory[skHistory.length-1],0,0);
-  } else {
-    skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
-    drawGrid();pushHistory();
-  }
+  gc.strokeStyle='rgba(80,120,180,.35)';gc.lineWidth=1;
+  for(let x=0;x<=skGridCanvas.width;x+=major){gc.beginPath();gc.moveTo(x,0);gc.lineTo(x,skGridCanvas.height);gc.stroke();}
+  for(let y=0;y<=skGridCanvas.height;y+=major){gc.beginPath();gc.moveTo(0,y);gc.lineTo(skGridCanvas.width,y);gc.stroke();}
+  gc.fillStyle='rgba(80,120,180,.45)';gc.font='9px sans-serif';gc.textAlign='left';
+  for(let x=major;x<skGridCanvas.width;x+=major)gc.fillText(x+'',x+2,10);
+  for(let y=major;y<skGridCanvas.height;y+=major)gc.fillText(y+'',2,y-2);
 }
 
-// ── HISTORY ───────────────────────────────────
+function redrawGrid(){drawGrid();}
+function getGridStep(){const s=document.getElementById('skGridSize');return s?parseInt(s.value)||0:20;}
+
+// ── HISTORY ────────────────────────────────────────────────────────
 function pushHistory(){
   skHistory.push(skCtx.getImageData(0,0,skCanvas.width,skCanvas.height));
-  if(skHistory.length>40)skHistory.shift();
+  if(skHistory.length>60)skHistory.shift();
+  updateUndoBtn();
 }
+
+function updateUndoBtn(){
+  const btn=document.getElementById('sk-undo-btn');
+  if(btn)btn.style.opacity=skHistory.length>1?'1':'.35';
+}
+
 function undoSketch(){
   if(skHistory.length<=1)return;
   skHistory.pop();
   skCtx.putImageData(skHistory[skHistory.length-1],0,0);
+  updateUndoBtn();
 }
 
-// ── CLOSE / SAVE ──────────────────────────────
+// ── OPEN / CLOSE ───────────────────────────────────────────────────
+function openSketch(pid,gid_,w,h){
+  skPid=pid;skGid=gid_;skW=w;skH=h;
+  skTexts=[];skTextLayer.innerHTML='';skHistory=[];skSelectedTxt=null;
+  const wrap=document.getElementById('skCanvasWrap');
+  const cw=Math.max(wrap.clientWidth||640,400);
+  const ch=Math.max(280,Math.min(500,Math.round(cw*(h/Math.max(w,1))*.5)));
+  skCanvas.width=cw;skCanvas.height=ch;
+  skTextLayer.style.width=cw+'px';skTextLayer.style.height=ch+'px';
+  skCtx.fillStyle='#fff';skCtx.fillRect(0,0,cw,ch);
+  drawGrid();
+  const p=projects.find(x=>x.id===pid);
+  const g=p?.glasses.find(x=>x.id===gid_);
+  if(g?.sketch){
+    const img=new Image();
+    img.onload=()=>{
+      skCtx.clearRect(0,0,cw,ch);
+      skCtx.fillStyle='#fff';skCtx.fillRect(0,0,cw,ch);
+      skCtx.drawImage(img,0,0,cw,ch);
+      skHistory=[];pushHistory();
+    };
+    img.src=g.sketch;
+  } else {pushHistory();}
+  document.getElementById('skDimsLabel').textContent='Peça: '+w+' × '+h+' mm';
+  skModal.classList.add('open');
+  setTool('draw');
+  updateUndoBtn();
+}
+
 function closeSketch(){
   skModal.classList.remove('open');
-  skHistory=[];skTexts=[];
-  skTextLayer.innerHTML='';
+  skHistory=[];skTexts=[];skTextLayer.innerHTML='';
 }
 
 function saveSketch(){
-  // Create high-res export canvas (2x)
   const scale=2;
-  const expCanvas=document.createElement('canvas');
-  expCanvas.width=skCanvas.width*scale;
-  expCanvas.height=skCanvas.height*scale;
-  const expCtx=expCanvas.getContext('2d');
-  expCtx.scale(scale,scale);
-  // draw base canvas content
-  expCtx.drawImage(skCanvas,0,0);
-  // draw text boxes at correct positions with rotation
+  const exp=document.createElement('canvas');
+  exp.width=skCanvas.width*scale;exp.height=skCanvas.height*scale;
+  const ec=exp.getContext('2d');
+  ec.scale(scale,scale);
+  ec.fillStyle='#fff';ec.fillRect(0,0,skCanvas.width,skCanvas.height);
+  ec.drawImage(skCanvas,0,0);
   skTexts.forEach(t=>{
-    const el=document.getElementById(t.id);
-    if(!el)return;
+    const el=document.getElementById(t.id);if(!el)return;
     const wr=skTextLayer.getBoundingClientRect();
     const er=el.getBoundingClientRect();
-    const cx=(er.left-wr.left)+er.width/2;
-    const cy=(er.top-wr.top)+er.height/2;
-    const angle=(t.angle||0)*Math.PI/180;
+    const cx=(er.left-wr.left)+er.width/2,cy=(er.top-wr.top)+er.height/2;
+    const ang=(t.angle||0)*Math.PI/180;
     const lines=(el.innerText||t.text).split('\n');
-    expCtx.save();
-    expCtx.translate(cx,cy);
-    expCtx.rotate(angle);
-    expCtx.font=`bold ${t.fontSize}px Barlow Condensed,Lato,sans-serif`;
-    expCtx.fillStyle=t.color;
-    expCtx.textBaseline='top';
-    const lineH=t.fontSize+4;
-    const totalH=lines.length*lineH;
-    lines.forEach((line,i)=>{
-      expCtx.fillText(line,-er.width/2+4,-totalH/2+i*lineH);
-    });
-    expCtx.restore();
+    ec.save();ec.translate(cx,cy);ec.rotate(ang);
+    ec.font=`bold ${t.fontSize}px Oswald,sans-serif`;
+    ec.fillStyle=t.color;ec.textBaseline='top';
+    const lh=t.fontSize+4,th=lines.length*lh;
+    lines.forEach((ln,i)=>ec.fillText(ln,-er.width/2+4,-th/2+i*lh));
+    ec.restore();
   });
-  const dataUrl=expCanvas.toDataURL('image/png');
+  const url=exp.toDataURL('image/png');
   const p=projects.find(x=>x.id===skPid);
-  if(p)p.glasses=p.glasses.map(g=>g.id===skGid?{...g,sketch:dataUrl}:g);
+  if(p)p.glasses=p.glasses.map(g=>g.id===skGid?{...g,sketch:url}:g);
   persist();renderAll();closeSketch();
 }
 
 function clearCanvas(){
   skCtx.fillStyle='#fff';skCtx.fillRect(0,0,skCanvas.width,skCanvas.height);
-  drawGrid();pushHistory();
   skTexts=[];skTextLayer.innerHTML='';
+  skHistory=[];pushHistory();
 }
 
-// ── TOOL ──────────────────────────────────────
+// ── TOOLS ──────────────────────────────────────────────────────────
 function setTool(t){
   skTool=t;
   ['draw','line','rect','tri','text','move','erase'].forEach(x=>{
@@ -839,20 +821,17 @@ function setTool(t){
     if(el)el.classList.toggle('active',x===t);
   });
   const hints={
-    draw:'Desenhe livremente. Perfeito para formas irregulares e recortes.',
-    line:'Clique e arraste para traçar uma linha reta.',
-    rect:'Clique e arraste para desenhar um retângulo.',
-    tri:'Clique e arraste para desenhar um triângulo.',
-    text:'Clique no canvas para adicionar uma caixa de texto. Digite e pressione Enter.',
-    move:'Clique numa caixa para selecioná-la (fica laranja). Arraste para mover. Use A⁺/A⁻ e ↺↻ para ajustar.',
-    erase:'Clique e arraste para apagar partes do desenho.'
+    draw:'✏️ Desenhe livremente — clique e arraste',
+    line:'📏 Clique e arraste para traçar uma reta',
+    rect:'▭ Clique e arraste para desenhar um retângulo',
+    tri:'△ Clique e arraste para desenhar um triângulo',
+    text:'T Clique na tela para adicionar uma caixa de texto',
+    move:'✥ Clique numa caixa de texto para selecioná-la e arraste para mover. Use A⁺/A⁻ para tamanho e ↺↻ para girar.',
+    erase:'⬜ Apaga o que você desenhou — não afeta a grade nem os textos',
   };
   document.getElementById('skHintText').textContent=hints[t]||'';
-  if(t==='move') skCanvas.style.cursor='default';
-  else if(t==='erase') skCanvas.style.cursor='cell';
-  else skCanvas.style.cursor='crosshair';
-  // enable pointer events on text layer only for move tool
-  skTextLayer.style.pointerEvents=(t==='move')?'auto':'none';
+  skCanvas.style.cursor=t==='erase'?'cell':t==='move'?'default':'crosshair';
+  skTextLayer.style.pointerEvents=t==='move'?'auto':'none';
 }
 
 function setColor(c,el){
@@ -861,47 +840,32 @@ function setColor(c,el){
   el.classList.add('sel');
 }
 
-// ── TEXT BOXES ────────────────────────────────
-let skTxtIdCounter=0;
-let skSelectedTxt=null; // currently selected text box id
-
-function applyTxtTransform(div,t){
-  div.style.transform=`rotate(${t.angle||0}deg)`;
-  div.style.fontSize=t.fontSize+'px';
-  div.style.minHeight=(t.fontSize+14)+'px';
-}
-
-function selectTxtBox(id){
-  // deselect all
+// ── TEXT BOXES ─────────────────────────────────────────────────────
+function selectTxt(id){
   document.querySelectorAll('.sk-txt-box').forEach(d=>{
-    d.style.border='2px dashed '+d.getAttribute('data-color');
-    d.style.boxShadow='0 2px 10px rgba(0,0,0,.18)';
+    d.style.outline='none';
+    d.style.boxShadow='0 1px 4px rgba(0,0,0,.15)';
   });
   skSelectedTxt=id;
   if(!id)return;
   const div=document.getElementById(id);
-  if(div){
-    div.style.border='2.5px solid #f59e0b';
-    div.style.boxShadow='0 0 0 3px rgba(245,158,11,.35),0 2px 10px rgba(0,0,0,.18)';
-  }
+  if(div){div.style.outline='2px solid #1a5fa8';div.style.boxShadow='0 0 0 3px rgba(26,95,168,.3)';}
 }
 
-function changeFontSize(delta){
+function changeFontSize(d){
   if(!skSelectedTxt)return;
-  const t=skTexts.find(t=>t.id===skSelectedTxt);
-  if(!t)return;
-  t.fontSize=Math.max(8,Math.min(120,t.fontSize+delta));
+  const t=skTexts.find(t=>t.id===skSelectedTxt);if(!t)return;
+  t.fontSize=Math.max(8,Math.min(120,t.fontSize+d));
   const div=document.getElementById(t.id);
-  if(div)applyTxtTransform(div,t);
+  if(div){div.style.fontSize=t.fontSize+'px';div.style.minHeight=(t.fontSize+14)+'px';}
 }
 
-function rotateSelectedText(delta){
+function rotateSelectedText(d){
   if(!skSelectedTxt)return;
-  const t=skTexts.find(t=>t.id===skSelectedTxt);
-  if(!t)return;
-  t.angle=(t.angle||0)+delta;
+  const t=skTexts.find(t=>t.id===skSelectedTxt);if(!t)return;
+  t.angle=(t.angle||0)+d;
   const div=document.getElementById(t.id);
-  if(div)applyTxtTransform(div,t);
+  if(div)div.style.transform=`rotate(${t.angle}deg)`;
 }
 
 function deleteSelectedText(){
@@ -913,168 +877,105 @@ function deleteSelectedText(){
 }
 
 function addTextBox(x,y){
-  const id='txt'+(++skTxtIdCounter);
-  const fontSize=22;
-  const color=skColor;
+  const id='txt'+(++skTxtCnt);const fs=20;const color=skColor;
   const div=document.createElement('div');
-  div.id=id;
-  div.className='sk-txt-box';
-  div.contentEditable='true';
-  div.spellcheck=false;
-  div.style.cssText=`
-    position:absolute;left:${x}px;top:${y}px;
-    min-width:80px;min-height:${fontSize+14}px;
-    font-family:'Barlow Condensed',sans-serif;font-weight:700;
-    font-size:${fontSize}px;line-height:1.3;color:${color};
-    background:rgba(255,255,255,.9);
-    border:2.5px solid #f59e0b;border-radius:5px;
-    padding:4px 8px;outline:none;cursor:text;
-    white-space:pre-wrap;word-break:break-word;max-width:300px;
-    box-shadow:0 0 0 3px rgba(245,158,11,.35),0 2px 10px rgba(0,0,0,.18);
-    pointer-events:auto;user-select:text;
-    transform:rotate(0deg);
-    transform-origin:center center;
-  `;
-  div.setAttribute('data-skid',id);
-  div.setAttribute('data-color',color);
-  div.setAttribute('data-fontsize',fontSize);
-  div.addEventListener('mousedown',onTxtMouseDown);
-  div.addEventListener('touchstart',onTxtTouchStart,{passive:false});
-  div.addEventListener('focus',()=>selectTxtBox(id));
-  div.addEventListener('click',e=>{e.stopPropagation();selectTxtBox(id);});
-  div.addEventListener('keydown',e=>{if(e.key==='Escape'){div.blur();}});
+  div.id=id;div.className='sk-txt-box';
+  div.contentEditable='true';div.spellcheck=false;
+  div.style.cssText=`position:absolute;left:${x}px;top:${y}px;min-width:70px;min-height:${fs+14}px;
+    font-family:'Oswald',sans-serif;font-weight:700;font-size:${fs}px;line-height:1.3;color:${color};
+    background:rgba(255,255,255,.92);outline:2px solid #1a5fa8;border-radius:5px;
+    padding:3px 7px;cursor:text;white-space:pre-wrap;word-break:break-word;max-width:300px;
+    box-shadow:0 0 0 3px rgba(26,95,168,.3);pointer-events:auto;user-select:text;
+    transform:rotate(0deg);transform-origin:center;touch-action:none;`;
+  div.setAttribute('data-skid',id);div.setAttribute('data-color',color);
+
+  let dragging=false,dragOx=0,dragOy=0;
+
+  div.addEventListener('pointerdown',e=>{
+    selectTxt(id);
+    if(skTool!=='move')return;
+    e.preventDefault();e.stopPropagation();
+    dragging=true;
+    div.setPointerCapture(e.pointerId);
+    const wr=skTextLayer.getBoundingClientRect();
+    const r=div.getBoundingClientRect();
+    dragOx=e.clientX-(r.left-wr.left);
+    dragOy=e.clientY-(r.top-wr.top);
+    div.style.cursor='grabbing';
+  });
+
+  div.addEventListener('pointermove',e=>{
+    if(!dragging)return;
+    e.preventDefault();
+    const wr=skTextLayer.getBoundingClientRect();
+    const nx=Math.max(0,e.clientX-wr.left-dragOx);
+    const ny=Math.max(0,e.clientY-wr.top-dragOy);
+    div.style.left=nx+'px';div.style.top=ny+'px';
+    const t=skTexts.find(t=>t.id===id);
+    if(t){t.x=nx;t.y=ny;}
+  });
+
+  div.addEventListener('pointerup',()=>{dragging=false;div.style.cursor='text';});
+  div.addEventListener('focus',()=>selectTxt(id));
+  div.addEventListener('click',e=>{e.stopPropagation();selectTxt(id);});
+  div.addEventListener('input',()=>{const t=skTexts.find(t=>t.id===id);if(t)t.text=div.innerText;});
+
   skTextLayer.appendChild(div);
-  skTexts.push({id,x,y,text:'',color,fontSize,angle:0,el:div});
+  skTexts.push({id,x,y,text:'',color,fontSize:fs,angle:0});
   skSelectedTxt=id;
   setTimeout(()=>div.focus(),30);
-  div.addEventListener('input',()=>{
-    const t=skTexts.find(t=>t.id===id);
-    if(t)t.text=div.innerText;
-  });
   return div;
 }
 
-function onTxtMouseDown(e){
-  const div=e.currentTarget;
-  selectTxtBox(div.getAttribute('data-skid'));
-  if(skTool!=='move')return;
-  e.preventDefault();e.stopPropagation();
-  startDragTxt(div,e.clientX,e.clientY);
-}
-function onTxtTouchStart(e){
-  const div=e.currentTarget;
-  selectTxtBox(div.getAttribute('data-skid'));
-  if(skTool!=='move')return;
-  e.preventDefault();e.stopPropagation();
-  const t=e.touches[0];
-  startDragTxt(div,t.clientX,t.clientY);
-}
-function startDragTxt(div,cx,cy){
-  skDragTxt=div;
-  const r=div.getBoundingClientRect();
-  const wr=skTextLayer.getBoundingClientRect();
-  skDragOx=cx-(r.left-wr.left);
-  skDragOy=cy-(r.top-wr.top);
-}
-
-document.addEventListener('mousemove',e=>{
-  if(!skDragTxt)return;
-  const wr=skTextLayer.getBoundingClientRect();
-  const nx=e.clientX-wr.left-skDragOx;
-  const ny=e.clientY-wr.top-skDragOy;
-  skDragTxt.style.left=Math.max(0,nx)+'px';
-  skDragTxt.style.top=Math.max(0,ny)+'px';
-  // sync to skTexts
-  const id=skDragTxt.getAttribute('data-skid');
-  const t=skTexts.find(t=>t.id===id);
-  if(t){t.x=Math.max(0,nx);t.y=Math.max(0,ny);}
-});
-document.addEventListener('touchmove',e=>{
-  if(!skDragTxt)return;
-  e.preventDefault();
-  const wr=skTextLayer.getBoundingClientRect();
-  const tc=e.touches[0];
-  const nx=tc.clientX-wr.left-skDragOx;
-  const ny=tc.clientY-wr.top-skDragOy;
-  skDragTxt.style.left=Math.max(0,nx)+'px';
-  skDragTxt.style.top=Math.max(0,ny)+'px';
-  const id=skDragTxt.getAttribute('data-skid');
-  const t=skTexts.find(t=>t.id===id);
-  if(t){t.x=Math.max(0,nx);t.y=Math.max(0,ny);}
-},{passive:false});
-document.addEventListener('mouseup',()=>{skDragTxt=null;});
-document.addEventListener('touchend',()=>{skDragTxt=null;});
-
-// ── DRAWING ───────────────────────────────────
+// ── DRAWING ────────────────────────────────────────────────────────
 function getPos(e){
   const r=skCanvas.getBoundingClientRect();
-  const src=e.touches?e.touches[0]:e;
-  return{x:src.clientX-r.left,y:src.clientY-r.top};
+  const s=e.touches?e.touches[0]:e;
+  return{x:s.clientX-r.left,y:s.clientY-r.top};
 }
 
-function skPointerDown(e){
-  selectTxtBox(null); // deselect on canvas click
-  if(skTool==='text'){
-    e.preventDefault();
-    const {x,y}=getPos(e);
-    addTextBox(x,y);
-    return;
-  }
-  e.preventDefault();
-  skDrawing=true;
-  const {x,y}=getPos(e);
-  skStartX=x;skStartY=y;
-  if(skTool==='draw'||skTool==='erase'){
-    skCtx.beginPath();skCtx.moveTo(x,y);
-  } else {
-    skSnapshot=skCtx.getImageData(0,0,skCanvas.width,skCanvas.height);
-  }
+function skDown(e){
+  selectTxt(null);
+  if(skTool==='text'){e.preventDefault();const{x,y}=getPos(e);addTextBox(x,y);return;}
+  e.preventDefault();skDrawing=true;
+  const{x,y}=getPos(e);skStartX=x;skStartY=y;
+  if(skTool==='draw'||skTool==='erase'){skCtx.beginPath();skCtx.moveTo(x,y);}
+  else skSnapshot=skCtx.getImageData(0,0,skCanvas.width,skCanvas.height);
 }
 
-function skPointerMove(e){
-  if(!skDrawing)return;
-  e.preventDefault();
-  const {x,y}=getPos(e);
+function skMove(e){
+  if(!skDrawing)return;e.preventDefault();
+  const{x,y}=getPos(e);
   const sz=parseInt(document.getElementById('skSize').value)||3;
   if(skTool==='draw'){
-    skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;
-    skCtx.lineCap='round';skCtx.lineJoin='round';
+    skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;skCtx.lineCap='round';skCtx.lineJoin='round';
     skCtx.lineTo(x,y);skCtx.stroke();
   } else if(skTool==='erase'){
-    skCtx.strokeStyle='#fff';skCtx.lineWidth=sz*5;
-    skCtx.lineCap='round';skCtx.lineJoin='round';
+    skCtx.strokeStyle='#fff';skCtx.lineWidth=sz*6;skCtx.lineCap='round';
     skCtx.lineTo(x,y);skCtx.stroke();
   } else {
     skCtx.putImageData(skSnapshot,0,0);
-    skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;
-    skCtx.lineCap='round';skCtx.lineJoin='round';
-    skCtx.beginPath();
-    if(skTool==='line'){
-      skCtx.moveTo(skStartX,skStartY);skCtx.lineTo(x,y);skCtx.stroke();
-    } else if(skTool==='rect'){
-      skCtx.strokeRect(skStartX,skStartY,x-skStartX,y-skStartY);
-    } else if(skTool==='tri'){
+    skCtx.strokeStyle=skColor;skCtx.lineWidth=sz;skCtx.lineCap='round';skCtx.beginPath();
+    if(skTool==='line'){skCtx.moveTo(skStartX,skStartY);skCtx.lineTo(x,y);skCtx.stroke();}
+    else if(skTool==='rect')skCtx.strokeRect(skStartX,skStartY,x-skStartX,y-skStartY);
+    else if(skTool==='tri'){
       skCtx.moveTo(skStartX+(x-skStartX)/2,skStartY);
-      skCtx.lineTo(skStartX,y);skCtx.lineTo(x,y);
-      skCtx.closePath();skCtx.stroke();
+      skCtx.lineTo(x,y);skCtx.lineTo(skStartX,y);skCtx.closePath();skCtx.stroke();
     }
   }
 }
 
-function skPointerUp(e){
-  if(!skDrawing)return;
-  skDrawing=false;
-  skCtx.beginPath();
-  pushHistory();
+function skUp(){
+  if(!skDrawing)return;skDrawing=false;skCtx.beginPath();pushHistory();
 }
 
-skCanvas.addEventListener('mousedown',skPointerDown);
-skCanvas.addEventListener('mousemove',skPointerMove);
-skCanvas.addEventListener('mouseup',skPointerUp);
-skCanvas.addEventListener('mouseleave',skPointerUp);
-skCanvas.addEventListener('touchstart',skPointerDown,{passive:false});
-skCanvas.addEventListener('touchmove',skPointerMove,{passive:false});
-skCanvas.addEventListener('touchend',skPointerUp);
+skCanvas.addEventListener('mousedown',skDown);
+skCanvas.addEventListener('mousemove',skMove);
+skCanvas.addEventListener('mouseup',skUp);
+skCanvas.addEventListener('mouseleave',skUp);
+skCanvas.addEventListener('touchstart',skDown,{passive:false});
+skCanvas.addEventListener('touchmove',skMove,{passive:false});
+skCanvas.addEventListener('touchend',skUp);
 
 // ══════════════════════════════════════════════
 //  INIT
