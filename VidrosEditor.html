@@ -156,7 +156,7 @@ body{font-family:'Lato',sans-serif;background:#eef3fb;height:100vh;overflow:hidd
 
 .sketch-canvas-wrap{
   flex:1;overflow:hidden;position:relative;
-  background:#fff;cursor:crosshair;min-height:300px;
+  background:#f8f8f8;cursor:crosshair;min-height:360px;
 }
 #sketchCanvas{display:block;touch-action:none;}
 
@@ -751,7 +751,7 @@ function openSketch(pid,gid_,w,h){
   skTexts=[];skTextLayer.innerHTML='';skHistory=[];skSelectedTxt=null;
   const wrap=document.getElementById('skCanvasWrap');
   const cw=Math.max(wrap.clientWidth||640,400);
-  const ch=Math.max(280,Math.min(500,Math.round(cw*(h/Math.max(w,1))*.5)));
+  const ch=360; // fixed height so all sketches are same size
   skCanvas.width=cw;skCanvas.height=ch;
   skTextLayer.style.width=cw+'px';skTextLayer.style.height=ch+'px';
   skCtx.fillStyle='#fff';skCtx.fillRect(0,0,cw,ch);
@@ -762,7 +762,8 @@ function openSketch(pid,gid_,w,h){
     const img=new Image();
     img.onload=()=>{
       skCtx.clearRect(0,0,cw,ch);
-      skCtx.fillStyle='#fff';skCtx.fillRect(0,0,cw,ch);
+      skCtx.fillStyle='#ffffff';skCtx.fillRect(0,0,cw,ch);
+      // draw the saved sketch scaled to current canvas size
       skCtx.drawImage(img,0,0,cw,ch);
       skHistory=[];pushHistory();
     };
@@ -785,7 +786,12 @@ function saveSketch(){
   exp.width=skCanvas.width*scale;exp.height=skCanvas.height*scale;
   const ec=exp.getContext('2d');
   ec.scale(scale,scale);
-  ec.fillStyle='#fff';ec.fillRect(0,0,skCanvas.width,skCanvas.height);
+  // solid white background always
+  ec.fillStyle='#ffffff';ec.fillRect(0,0,skCanvas.width,skCanvas.height);
+  // draw grid lightly
+  if(skGridCanvas){
+    ec.save();ec.globalAlpha=0.4;ec.drawImage(skGridCanvas,0,0);ec.restore();
+  }
   ec.drawImage(skCanvas,0,0);
   skTexts.forEach(t=>{
     const el=document.getElementById(t.id);if(!el)return;
@@ -897,10 +903,10 @@ function addTextBox(x,y){
     e.preventDefault();e.stopPropagation();
     dragging=true;
     div.setPointerCapture(e.pointerId);
-    const wr=skTextLayer.getBoundingClientRect();
-    const r=div.getBoundingClientRect();
-    dragOx=e.clientX-(r.left-wr.left);
-    dragOy=e.clientY-(r.top-wr.top);
+    // offset = where inside the div the user clicked
+    const dr=div.getBoundingClientRect();
+    dragOx=e.clientX-dr.left;
+    dragOy=e.clientY-dr.top;
     div.style.cursor='grabbing';
   });
 
@@ -908,14 +914,20 @@ function addTextBox(x,y){
     if(!dragging)return;
     e.preventDefault();
     const wr=skTextLayer.getBoundingClientRect();
-    const nx=Math.max(0,e.clientX-wr.left-dragOx);
-    const ny=Math.max(0,e.clientY-wr.top-dragOy);
+    // new top-left: pointer minus intra-div offset, relative to layer
+    const nx=Math.max(0,Math.min(e.clientX-wr.left-dragOx, wr.width-20));
+    const ny=Math.max(0,Math.min(e.clientY-wr.top-dragOy, wr.height-20));
     div.style.left=nx+'px';div.style.top=ny+'px';
     const t=skTexts.find(t=>t.id===id);
     if(t){t.x=nx;t.y=ny;}
   });
 
-  div.addEventListener('pointerup',()=>{dragging=false;div.style.cursor='text';});
+  div.addEventListener('pointerup',e=>{
+    if(!dragging)return;
+    dragging=false;
+    div.releasePointerCapture(e.pointerId);
+    div.style.cursor='text';
+  });
   div.addEventListener('focus',()=>selectTxt(id));
   div.addEventListener('click',e=>{e.stopPropagation();selectTxt(id);});
   div.addEventListener('input',()=>{const t=skTexts.find(t=>t.id===id);if(t)t.text=div.innerText;});
