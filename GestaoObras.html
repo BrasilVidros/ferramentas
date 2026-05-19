@@ -1332,24 +1332,25 @@ function renderComp(){
     chHg.addColorStop(0,'#1e1b4b');chHg.addColorStop(1,'#312e81');
     ctx.fillStyle=chHg;
     ctx.save();ctx.beginPath();ctx.moveTo(PAD+14,y);ctx.lineTo(PAD+W-PAD*2-14,y);
-    ctx.quadraticCurveTo(PAD+W-PAD*2,y,PAD+W-PAD*2,y+14);ctx.lineTo(PAD+W-PAD*2,y+44);
-    ctx.lineTo(PAD,y+44);ctx.lineTo(PAD,y+14);ctx.quadraticCurveTo(PAD,y,PAD+14,y);
+    ctx.quadraticCurveTo(PAD+W-PAD*2,y,PAD+W-PAD*2,y+14);ctx.lineTo(PAD+W-PAD*2,y+80);
+    ctx.lineTo(PAD,y+80);ctx.lineTo(PAD,y+14);ctx.quadraticCurveTo(PAD,y,PAD+14,y);
     ctx.closePath();ctx.fill();ctx.restore();
     t('DISTRIBUIÇÃO DE CUSTOS POR CATEGORIA',PAD+18,y+22,'bold 14px Barlow Condensed,Arial','#fff');
 
-    // legend
-    let lx=W-PAD-KEYS.length*110;
+    // legend on second row - split into two rows if needed
+    const itemW=Math.floor((W-PAD*2)/KEYS.length);
     KEYS.forEach((k,i)=>{
-      ctx.fillStyle=COLORS[i];ctx.beginPath();ctx.arc(lx+6,y+22,5,0,Math.PI*2);ctx.fill();
-      t(COLS[i],lx+16,y+22,'600 11px Barlow Condensed,Arial','rgba(255,255,255,.7)');
-      lx+=110;
+      const lx=PAD+i*itemW;
+      const ly=y+50;
+      ctx.fillStyle=COLORS[i];ctx.beginPath();ctx.arc(lx+6,ly,5,0,Math.PI*2);ctx.fill();
+      t(COLS[i],lx+15,ly,'600 10px Barlow Condensed,Arial','rgba(255,255,255,.75)');
     });
 
     const chartPad=50;
     const chartX=PAD+chartPad;
     const chartW=W-PAD*2-chartPad*2;
-    const chartY=y+54;
-    const chartH=CHART_H-70;
+    const chartY=y+90;
+    const chartH=CHART_H-100;
     const maxVal=Math.max(...Object.values(totals),1);
     const gridLines=5;
 
@@ -1404,7 +1405,7 @@ function renderComp(){
 
   // table headers
   const tCols=['OBRA / CLIENTE','VIDRO','PERFIL','INSUMO','GASOLINA','FERRAG.','TERCEIROS','CALHA/RUFO','PELÍCULA','OUTROS','DIAS','TOTAL','VENDA','LUCRO','%'];
-  const tWidths=[160,75,65,65,70,70,75,80,65,65,70,95,95,85,55];
+  const tWidths=[148,70,60,58,64,64,70,70,58,58,64,88,88,80,52];
   let tx=PAD+12;
   tCols.forEach((col,i)=>{
     t(col,tx+tWidths[i]/2,y+TABLE_HEADER_H/2,'700 10px Barlow Condensed,Arial','rgba(255,255,255,.6)','center');
