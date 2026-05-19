@@ -455,7 +455,9 @@ function newObra(num,client){
     num:num||'',client:client||'',
     dataFechamento:'',
     valorVenda:0,
-    custos:{vidro:0,perfil:0,insumo:0,gasolina:0,maoDeObra:0,outros:0},
+    custos:{vidro:0,perfil:0,insumo:0,gasolina:0,maoDeObra:0,terceiros:0,calhaRufo:0,pelicula:0,outros:0},
+    diasTrabalhados:[],
+    valorDia:0,
     locais:[],
     obs:'',
     createdAt:Date.now()
@@ -463,7 +465,8 @@ function newObra(num,client){
 }
 
 function calcObra(o){
-  const totalCusto=Object.values(o.custos||{}).reduce((s,v)=>s+(parseFloat(v)||0),0);
+  const diasCusto=(o.diasTrabalhados||[]).length*(parseFloat(o.valorDia)||0);
+  const totalCusto=Object.values(o.custos||{}).reduce((s,v)=>s+(parseFloat(v)||0),0)+diasCusto;
   const venda=parseFloat(o.valorVenda)||0;
   const lucro=venda-totalCusto;
   const pct=venda>0?(lucro/venda*100):0;
@@ -473,6 +476,21 @@ function calcObra(o){
 
 function fmtBRL(v){
   return new Intl.NumberFormat('pt-BR',{style:'currency',currency:'BRL'}).format(v||0);
+}
+function fmtNum(v){
+  if(!v&&v!==0)return'';
+  return new Intl.NumberFormat('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2}).format(v);
+}
+function parseBRL(s){
+  if(!s)return 0;
+  // Remove currency symbol and spaces, convert pt-BR format to float
+  const clean=String(s).replace(/[R$\s]/g,'').replace(/\./g,'').replace(',','.');
+  return parseFloat(clean)||0;
+}
+function formatMoneyInput(el){
+  const v=parseBRL(el.value);
+  if(v)el.value=fmtNum(v);
+  else el.value='';
 }
 function fmtPct(v){return(v>=0?'+':'')+v.toFixed(1)+'%';}
 
@@ -587,13 +605,15 @@ function buildForm(o){
   const pos=lucro>=0;
   const custoItems=[
     ['vidro','🪟','Vidro'],['perfil','🔩','Perfil'],['insumo','🧪','Insumo'],
-    ['gasolina','⛽','Gasolina'],['maoDeObra','🔧','Mão de Obra'],['outros','📦','Outros'],
+    ['gasolina','⛽','Gasolina'],['maoDeObra','🔧','Mão de Obra'],
+    ['terceiros','👷','Terceiros'],['calhaRufo','🌧️','Calha e Rufo'],['pelicula','🎞️','Película'],
+    ['outros','📦','Outros'],
   ];
   const total=totalCusto||1;
   const segs=custoItems.map((c,i)=>{
     const v=parseFloat(o.custos?.[c[0]])||0;
     const w=(v/total*100).toFixed(1);
-    const colors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#f43f5e'];
+    const colors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#06b6d4','#84cc16','#e879f9','#f43f5e'];
     return`<div class="bar-seg" style="width:${w}%;background:${colors[i]};"></div>`;
   }).join('');
 
@@ -621,7 +641,7 @@ function buildForm(o){
         <div class="form-row form-row-2">
           <div class="field field-prefix">
             <label class="field-lbl">Valor Total da Venda</label>
-            <input class="field-inp" type="number" step="0.01" value="${o.valorVenda||''}" placeholder="0,00" oninput="updNum('${o.id}','valorVenda',this.value)">
+            <input class="field-inp" type="text" inputmode="decimal" value="${o.valorVenda?fmtNum(o.valorVenda):''}" placeholder="0,00" oninput="updNum('${o.id}','valorVenda',parseBRL(this.value))" onblur="formatMoneyInput(this)">
           </div>
           <div class="field">
             <label class="field-lbl">Observações</label>
@@ -643,7 +663,7 @@ function buildForm(o){
             <div class="custo-lbl">${ico} ${lbl}</div>
             <div style="position:relative;">
               <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);font-weight:600;pointer-events:none;">R$</span>
-              <input class="custo-inp" type="number" step="0.01" style="padding-left:30px;" value="${o.custos?.[key]||''}" placeholder="0,00" oninput="updCusto('${o.id}','${key}',this.value)">
+              <input class="custo-inp" type="text" inputmode="decimal" style="padding-left:30px;" value="${o.custos?.[key]?fmtNum(o.custos[key]):''}" placeholder="0,00" oninput="updCusto('${o.id}','${key}',parseBRL(this.value))" onblur="formatMoneyInput(this)">
             </div>
           </div>`).join('')}
         </div>
@@ -653,7 +673,7 @@ function buildForm(o){
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
             ${custoItems.map((c,i)=>{
               const v=parseFloat(o.custos?.[c[0]])||0;
-              const colors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#f43f5e'];
+              const colors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#06b6d4','#84cc16','#e879f9','#f43f5e'];
               return`<div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--muted);">
                 <div style="width:8px;height:8px;border-radius:50%;background:${colors[i]};flex-shrink:0;"></div>
                 ${c[2]}: <strong style="color:var(--text);">${fmtBRL(v)}</strong>
@@ -664,6 +684,37 @@ function buildForm(o){
         <div style="text-align:right;font-size:13px;color:var(--muted);">
           Total de custos: <strong style="color:var(--red);font-family:'Barlow Condensed',sans-serif;font-size:16px;">${fmtBRL(totalCusto)}</strong>
         </div>
+      </div>
+    </div>
+
+    <!-- DIAS TRABALHADOS -->
+    <div class="section-card">
+      <div class="section-hdr">
+        <div class="section-hdr-ico" style="background:rgba(6,182,212,.1);">📅</div>
+        <div class="section-hdr-title">DIAS TRABALHADOS</div>
+      </div>
+      <div class="section-body">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div class="field" style="flex:1;min-width:140px;">
+            <label class="field-lbl">Valor por Dia (R$)</label>
+            <div style="position:relative;">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);font-weight:600;pointer-events:none;">R$</span>
+              <input class="field-inp" type="text" inputmode="decimal" style="padding-left:30px;" value="${o.valorDia?fmtNum(o.valorDia):''}" placeholder="0,00" oninput="updDiasValor('${o.id}',parseBRL(this.value))" onblur="formatMoneyInput(this)">
+            </div>
+          </div>
+          <div class="field" style="flex:2;min-width:200px;">
+            <label class="field-lbl">Total dias × valor = <strong style="color:var(--green);">${fmtBRL((o.diasTrabalhados||[]).length*(parseFloat(o.valorDia)||0))}</strong></label>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-height:42px;">
+              <span style="font-size:13px;font-weight:700;color:var(--blue);min-width:24px;">${(o.diasTrabalhados||[]).length}d</span>
+              ${[...Array(31)].map((_,i)=>{
+                const d=i+1;
+                const sel=(o.diasTrabalhados||[]).includes(d);
+                return`<button onclick="toggleDia('${o.id}',${d})" style="width:28px;height:28px;border-radius:6px;border:1px solid ${sel?'var(--blue)':'var(--border)'};background:${sel?'var(--blue-dim)':'transparent'};color:${sel?'var(--blue)':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;padding:0;">${d}</button>`;
+              }).join('')}
+            </div>
+          </div>
+        </div>
+        ${(o.diasTrabalhados||[]).length>0?`<div style="font-size:12px;color:var(--muted);">Dias selecionados: <strong style="color:var(--text);">${(o.diasTrabalhados||[]).sort((a,b)=>a-b).join(', ')}</strong></div>`:''}
       </div>
     </div>
 
@@ -736,10 +787,10 @@ function buildDash(){
   const margemGeral=totalVenda>0?totalLucro/totalVenda*100:0;
   const posCount=calcs.filter(o=>o.lucro>=0).length;
   const negCount=obras.length-posCount;
-  const custoKeys=['vidro','perfil','insumo','gasolina','maoDeObra','outros'];
-  const custoLabels=['🪟 Vidro','🔩 Perfil','🧪 Insumo','⛽ Gasolina','🔧 Mão de Obra','📦 Outros'];
+  const custoKeys=['vidro','perfil','insumo','gasolina','maoDeObra','terceiros','calhaRufo','pelicula','outros'];
+  const custoLabels=['🪟 Vidro','🔩 Perfil','🧪 Insumo','⛽ Gasolina','🔧 Mão de Obra','👷 Terceiros','🌧️ Calha/Rufo','🎞️ Película','📦 Outros'];
   const custoTotals=custoKeys.map(k=>obras.reduce((s,o)=>s+(parseFloat(o.custos?.[k])||0),0));
-  const custoColors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#f43f5e'];
+  const custoColors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#06b6d4','#84cc16','#e879f9','#f43f5e'];
   const locaisCount={};
   obras.forEach(o=>(o.locais||[]).forEach(l=>locaisCount[l]=(locaisCount[l]||0)+1));
   const topLocais=Object.entries(locaisCount).sort((a,b)=>b[1]-a[1]).slice(0,5);
@@ -795,6 +846,20 @@ function updNum(id,field,val){
   o[field]=parseFloat(val)||0;
   rerenderResultado(o);
   renderSB();scheduleSave();
+}
+function updDiasValor(id,val){
+  pushUndo();
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  o.valorDia=parseFloat(val)||0;
+  rerenderResultado(o);renderSB();scheduleSave();
+}
+function toggleDia(id,dia){
+  pushUndo();
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  if(!o.diasTrabalhados)o.diasTrabalhados=[];
+  if(o.diasTrabalhados.includes(dia))o.diasTrabalhados=o.diasTrabalhados.filter(d=>d!==dia);
+  else o.diasTrabalhados.push(dia);
+  renderContent();rerenderResultado(o);renderSB();scheduleSave();
 }
 function updCusto(id,key,val){
   pushUndo();
