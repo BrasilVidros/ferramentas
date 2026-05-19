@@ -513,7 +513,7 @@ function buildDiasCal(o){
 }
 
 function calcObra(o){
-  const diasCusto=countDias(o)*(parseFloat(o.valorDia)||0);
+  const diasCusto=totalDiasCusto(o); // includes dias × valorDia + maoDeObraTotal
   const totalCusto=Object.values(o.custos||{}).reduce((s,v)=>s+(parseFloat(v)||0),0)+diasCusto;
   const venda=parseFloat(o.valorVenda)||0;
   const lucro=venda-totalCusto;
