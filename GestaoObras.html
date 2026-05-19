@@ -489,16 +489,16 @@ function buildDiasCal(o){
   let cells='';
   // empty cells before first day
   for(let i=0;i<primeiroDia;i++){
-    cells+=`<div></div>`;
+    cells+=`<div style='height:32px;'></div>`;
   }
   for(let d=1;d<=totalDias;d++){
     const sel=selecionados.includes(d);
     const hoje=new Date().getDate()===d&&new Date().getMonth()===mes;
     cells+=`<button onclick="toggleDia('${o.id}',${d})" style="
-      aspect-ratio:1;border-radius:7px;border:1px solid ${sel?'var(--blue)':hoje?'var(--green)':'var(--border)'};
+      height:32px;border-radius:6px;border:1px solid ${sel?'var(--blue)':hoje?'var(--green)':'var(--border)'};
       background:${sel?'var(--blue-dim)':hoje?'rgba(0,229,160,.08)':'transparent'};
       color:${sel?'var(--blue)':hoje?'var(--green)':'var(--muted)'};
-      font-size:12px;font-weight:${sel||hoje?'700':'400'};cursor:pointer;transition:all .12s;padding:0;
+      font-size:11px;font-weight:${sel||hoje?'700':'400'};cursor:pointer;transition:all .12s;padding:0;
       ">${d}</button>`;
   }
   return cells;
@@ -755,11 +755,11 @@ function buildForm(o){
           </div>
         </div>
         <!-- Calendário de dias -->
-        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;">
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px;">
-            ${['D','S','T','Q','Q','S','S'].map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);">${d}</div>`).join('')}
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">
+            ${['D','S','T','Q','Q','S','S'].map(d=>`<div style="text-align:center;font-size:9px;font-weight:700;color:var(--muted);height:18px;line-height:18px;">${d}</div>`).join('')}
           </div>
-          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">
             ${buildDiasCal(o)}
           </div>
         </div>
@@ -1133,7 +1133,7 @@ function gerarRelatorio(){
   const rx=PAD+leftW+24;
 
   // CUSTOS CARD
-  const custoItems=[['Vidro',o.custos?.vidro,'#3b82f6'],['Perfil',o.custos?.perfil,'#eab308'],['Insumo',o.custos?.insumo,'#8b5cf6'],['Gasolina',o.custos?.gasolina,'#f97316'],['Mão de Obra',o.custos?.maoDeObra,'#10b981'],['Outros',o.custos?.outros,'#ef4444']];
+  const custoItems=[['Vidro',o.custos?.vidro,'#3b82f6'],['Perfil',o.custos?.perfil,'#eab308'],['Insumo',o.custos?.insumo,'#8b5cf6'],['Gasolina',o.custos?.gasolina,'#f97316'],['Ferragens/Aces.',o.custos?.ferragens,'#06b6d4'],['Terceiros',o.custos?.terceiros,'#10b981'],['Calha e Rufo',o.custos?.calhaRufo,'#84cc16'],['Película',o.custos?.pelicula,'#e879f9'],['Outros',o.custos?.outros,'#ef4444'],['Dias Trabalhados',totalDiasCusto(o),'#f59e0b']];
   const rowH=46;
   const custoCardH=50+custoItems.length*rowH+50;
   shadow(()=>{ctx.fillStyle='#fff';rr(PAD,y,leftW,custoCardH,14);ctx.fill();});
@@ -1241,9 +1241,9 @@ function renderComp(){
 
   // canvas size: header + summary cards + bar chart + table + footer
   const OBRA_COL=200;
-  const COLS=['Vidro','Perfil','Insumo','Gasolina','Mão de Obra','Outros'];
-  const KEYS=['vidro','perfil','insumo','gasolina','maoDeObra','outros'];
-  const COLORS=['#3b82f6','#eab308','#8b5cf6','#f97316','#10b981','#ef4444'];
+  const COLS=['Vidro','Perfil','Insumo','Gasolina','Ferragens','Terceiros','Calha/Rufo','Película','Outros','Dias Trab.'];
+  const KEYS=['vidro','perfil','insumo','gasolina','ferragens','terceiros','calhaRufo','pelicula','outros','_dias'];
+  const COLORS=['#3b82f6','#eab308','#8b5cf6','#f97316','#06b6d4','#10b981','#84cc16','#e879f9','#ef4444','#f59e0b'];
 
   const W=1200;
   const HEADER_H=100;
@@ -1293,7 +1293,10 @@ function renderComp(){
 
   // TOTALS per category
   const totals={};
-  KEYS.forEach(k=>{totals[k]=list.reduce((s,o)=>s+(parseFloat(o.custos?.[k])||0),0);});
+  KEYS.forEach(k=>{
+    if(k==='_dias')totals[k]=list.reduce((s,o)=>s+totalDiasCusto(o),0);
+    else totals[k]=list.reduce((s,o)=>s+(parseFloat(o.custos?.[k])||0),0);
+  });
   const totalGeral=KEYS.reduce((s,k)=>s+totals[k],0);
   const totalVenda=list.reduce((s,o)=>s+(parseFloat(o.valorVenda)||0),0);
   const totalLucro=totalVenda-totalGeral;
@@ -1400,8 +1403,8 @@ function renderComp(){
   ctx.closePath();ctx.fill();ctx.restore();
 
   // table headers
-  const tCols=['OBRA / CLIENTE','VIDRO','PERFIL','INSUMO','GASOLINA','MÃO DE OBRA','OUTROS','TOTAL CUSTO','VENDA','LUCRO','%'];
-  const tWidths=[200,90,80,80,80,100,80,110,110,100,60];
+  const tCols=['OBRA / CLIENTE','VIDRO','PERFIL','INSUMO','GASOLINA','FERRAG.','TERCEIROS','CALHA/RUFO','PELÍCULA','OUTROS','DIAS','TOTAL','VENDA','LUCRO','%'];
+  const tWidths=[160,75,65,65,70,70,75,80,65,65,70,95,95,85,55];
   let tx=PAD+12;
   tCols.forEach((col,i)=>{
     t(col,tx+tWidths[i]/2,y+TABLE_HEADER_H/2,'700 10px Barlow Condensed,Arial','rgba(255,255,255,.6)','center');
@@ -1416,10 +1419,12 @@ function renderComp(){
     const rowVals=[
       o.client||(o.num?'#'+o.num:'—'),
       fmtBRL(o.custos?.vidro||0),fmtBRL(o.custos?.perfil||0),fmtBRL(o.custos?.insumo||0),
-      fmtBRL(o.custos?.gasolina||0),fmtBRL(o.custos?.maoDeObra||0),fmtBRL(o.custos?.outros||0),
+      fmtBRL(o.custos?.gasolina||0),fmtBRL(o.custos?.ferragens||0),fmtBRL(o.custos?.terceiros||0),
+      fmtBRL(o.custos?.calhaRufo||0),fmtBRL(o.custos?.pelicula||0),fmtBRL(o.custos?.outros||0),
+      fmtBRL(totalDiasCusto(o)),
       fmtBRL(totalCusto),fmtBRL(venda),fmtBRL(lucro),fmtPct(pct),
     ];
-    const rowColors=['#1e293b','#3b82f6','#eab308','#8b5cf6','#f97316','#10b981','#ef4444','#dc2626','#2563eb',lucro>=0?'#059669':'#dc2626',lucro>=0?'#059669':'#dc2626'];
+    const rowColors=['#1e293b','#3b82f6','#eab308','#8b5cf6','#f97316','#06b6d4','#10b981','#84cc16','#e879f9','#ef4444','#f59e0b','#dc2626','#2563eb',lucro>=0?'#059669':'#dc2626',lucro>=0?'#059669':'#dc2626'];
     let rx2=PAD+12;
     rowVals.forEach((v,i)=>{
       const isName=i===0;
@@ -1433,8 +1438,8 @@ function renderComp(){
   ctx.fillStyle='#f1f5f9';rr(PAD+6,totRy,W-PAD*2-12,TABLE_ROW_H,6);ctx.fill();
   ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;rr(PAD+6,totRy,W-PAD*2-12,TABLE_ROW_H,6);ctx.stroke();
   let rx3=PAD+12;
-  const totVals=['TOTAIS',fmtBRL(totals.vidro),fmtBRL(totals.perfil),fmtBRL(totals.insumo),fmtBRL(totals.gasolina),fmtBRL(totals.maoDeObra),fmtBRL(totals.outros),fmtBRL(totalGeral),fmtBRL(totalVenda),fmtBRL(totalLucro),totalVenda>0?fmtPct(totalLucro/totalVenda*100):'+0.0%'];
-  const totColors=['#475569','#3b82f6','#eab308','#8b5cf6','#f97316','#10b981','#ef4444','#dc2626','#2563eb',totalLucro>=0?'#059669':'#dc2626',totalLucro>=0?'#059669':'#dc2626'];
+  const totVals=['TOTAIS',fmtBRL(totals.vidro),fmtBRL(totals.perfil),fmtBRL(totals.insumo),fmtBRL(totals.gasolina),fmtBRL(totals.ferragens),fmtBRL(totals.terceiros),fmtBRL(totals.calhaRufo),fmtBRL(totals.pelicula),fmtBRL(totals.outros),fmtBRL(totals._dias),fmtBRL(totalGeral),fmtBRL(totalVenda),fmtBRL(totalLucro),totalVenda>0?fmtPct(totalLucro/totalVenda*100):'+0.0%'];
+  const totColors=['#475569','#3b82f6','#eab308','#8b5cf6','#f97316','#06b6d4','#10b981','#84cc16','#e879f9','#ef4444','#f59e0b','#dc2626','#2563eb',totalLucro>=0?'#059669':'#dc2626',totalLucro>=0?'#059669':'#dc2626'];
   totVals.forEach((v,i)=>{
     const isName=i===0;
     t(v,rx3+(isName?4:tWidths[i]/2),totRy+TABLE_ROW_H/2,isName?'800 13px Barlow Condensed,Arial':'bold 12px Barlow Condensed,Arial',totColors[i],isName?'left':'center');
