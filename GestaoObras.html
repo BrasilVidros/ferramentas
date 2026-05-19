@@ -458,6 +458,7 @@ function newObra(num,client){
     custos:{vidro:0,perfil:0,insumo:0,gasolina:0,ferragens:0,terceiros:0,calhaRufo:0,pelicula:0,outros:0},
     diasTrabalhados:{},
     valorDia:0,
+    maoDeObraTotal:0,
     mesDias:new Date().getMonth(),
     locais:[],
     obs:'',
@@ -477,8 +478,15 @@ function getDiasSel(o){
   const dias=((o.diasTrabalhados||{})[key]||[]);
   return [...dias].sort((a,b)=>a-b);
 }
-function countDias(o){ return getDiasSel(o).length; }
-function totalDiasCusto(o){ return countDias(o)*(parseFloat(o.valorDia)||0); }
+function countDias(o){
+  // sum dias across ALL months
+  const dias=o.diasTrabalhados||{};
+  if(Array.isArray(dias))return dias.length;
+  return Object.values(dias).reduce((s,arr)=>s+(Array.isArray(arr)?arr.length:0),0);
+}
+function totalDiasCusto(o){
+  return countDias(o)*(parseFloat(o.valorDia)||0)+(parseFloat(o.maoDeObraTotal)||0);
+}
 
 function buildDiasCal(o){
   const mes=getMesDias(o);
@@ -748,12 +756,21 @@ function buildForm(o){
               ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].map((m,i)=>`<option value="${i}" ${(o.mesDias||new Date().getMonth())===i?'selected':''}>${m} ${new Date().getFullYear()}</option>`).join('')}
             </select>
           </div>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <span style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;">Total</span>
+          <div style="display:flex;flex-direction:column;gap:4px;min-width:160px;">
+            <span style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;">Total geral</span>
             <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--green);">${fmtBRL(totalDiasCusto(o))}</span>
-            <span style="font-size:11px;color:var(--muted);">${countDias(o)} dia(s)</span>
+            <span style="font-size:11px;color:var(--muted);">${countDias(o)} dia(s) × ${fmtBRL(o.valorDia||0)}/dia${o.maoDeObraTotal?` + R$ extra`:''}${countDias(o)>0?` = ${fmtBRL(countDias(o)*(o.valorDia||0))}`:''}</span>
           </div>
         </div>
+        <!-- Mão de obra total -->
+        <div class="field">
+          <label class="field-lbl">Mão de Obra Total (valor fixo, sem dias)</label>
+          <div style="position:relative;">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);font-weight:600;pointer-events:none;">R$</span>
+            <input class="field-inp" type="text" inputmode="decimal" style="padding-left:30px;max-width:220px;" value="${o.maoDeObraTotal?fmtNum(o.maoDeObraTotal):''}" placeholder="0,00 — opcional" oninput="updMaoDeObraTotal('${o.id}',parseBRL(this.value))" onblur="formatMoneyInput(this)">
+          </div>
+        </div>
+
         <!-- Calendário de dias -->
         <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:10px;">
           <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;">
@@ -763,7 +780,16 @@ function buildForm(o){
             ${buildDiasCal(o)}
           </div>
         </div>
-        ${countDias(o)>0?`<div style="font-size:12px;color:var(--muted);">Dias selecionados: <strong style="color:var(--text);">${getDiasSel(o).join(', ')}</strong></div>`:''}
+        ${(()=>{
+  const dias=o.diasTrabalhados||{};
+  const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const linhas=Object.entries(Array.isArray(dias)?{}:dias)
+    .filter(([k,v])=>Array.isArray(v)&&v.length>0)
+    .sort(([a],[b])=>parseInt(a.slice(1))-parseInt(b.slice(1)))
+    .map(([k,v])=>`<span style='background:var(--surface3);border-radius:4px;padding:2px 7px;font-size:11px;'><strong style='color:var(--blue);'>${meses[parseInt(k.slice(1))]||k}:</strong> ${[...v].sort((a,b)=>a-b).join(', ')} <span style='color:var(--green);'>(${v.length}d)</span></span>`);
+  const total=countDias(o);
+  return total>0?`<div style='display:flex;flex-wrap:wrap;gap:6px;align-items:center;'><span style='font-size:11px;color:var(--muted);font-weight:700;'>DIAS POR MÊS:</span>${linhas.join('')}<span style='font-size:11px;color:var(--green);font-weight:700;margin-left:4px;'>= ${total} dias no total</span></div>`:'';
+})()}
       </div>
     </div>
 
@@ -912,6 +938,12 @@ function toggleDia(id,dia){
   if(o.diasTrabalhados[key].includes(dia))o.diasTrabalhados[key]=o.diasTrabalhados[key].filter(d=>d!==dia);
   else o.diasTrabalhados[key].push(dia);
   renderContent();rerenderResultado(o);renderSB();scheduleSave();
+}
+function updMaoDeObraTotal(id,val){
+  pushUndo();
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  o.maoDeObraTotal=parseFloat(val)||0;
+  rerenderResultado(o);renderSB();scheduleSave();
 }
 function updMesDias(id,mes){
   const o=obras.find(x=>x.id===id);if(!o)return;
