@@ -455,17 +455,57 @@ function newObra(num,client){
     num:num||'',client:client||'',
     dataFechamento:'',
     valorVenda:0,
-    custos:{vidro:0,perfil:0,insumo:0,gasolina:0,maoDeObra:0,terceiros:0,calhaRufo:0,pelicula:0,outros:0},
-    diasTrabalhados:[],
+    custos:{vidro:0,perfil:0,insumo:0,gasolina:0,ferragens:0,terceiros:0,calhaRufo:0,pelicula:0,outros:0},
+    diasTrabalhados:{},
     valorDia:0,
+    mesDias:new Date().getMonth(),
     locais:[],
     obs:'',
     createdAt:Date.now()
   };
 }
 
+// ── DIAS HELPERS ──
+const MESES_NOMES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+
+function getMesDias(o){ return o.mesDias!=null?o.mesDias:new Date().getMonth(); }
+function getDiasDoMes(ano,mes){ return new Date(ano,mes+1,0).getDate(); }
+function getPrimeiroDiaSemana(ano,mes){ return new Date(ano,mes,1).getDay(); }
+function getDiasSel(o){
+  const mes=getMesDias(o);
+  const key='m'+mes;
+  const dias=((o.diasTrabalhados||{})[key]||[]);
+  return [...dias].sort((a,b)=>a-b);
+}
+function countDias(o){ return getDiasSel(o).length; }
+function totalDiasCusto(o){ return countDias(o)*(parseFloat(o.valorDia)||0); }
+
+function buildDiasCal(o){
+  const mes=getMesDias(o);
+  const ano=new Date().getFullYear();
+  const totalDias=getDiasDoMes(ano,mes);
+  const primeiroDia=getPrimeiroDiaSemana(ano,mes);
+  const selecionados=getDiasSel(o);
+  let cells='';
+  // empty cells before first day
+  for(let i=0;i<primeiroDia;i++){
+    cells+=`<div></div>`;
+  }
+  for(let d=1;d<=totalDias;d++){
+    const sel=selecionados.includes(d);
+    const hoje=new Date().getDate()===d&&new Date().getMonth()===mes;
+    cells+=`<button onclick="toggleDia('${o.id}',${d})" style="
+      aspect-ratio:1;border-radius:7px;border:1px solid ${sel?'var(--blue)':hoje?'var(--green)':'var(--border)'};
+      background:${sel?'var(--blue-dim)':hoje?'rgba(0,229,160,.08)':'transparent'};
+      color:${sel?'var(--blue)':hoje?'var(--green)':'var(--muted)'};
+      font-size:12px;font-weight:${sel||hoje?'700':'400'};cursor:pointer;transition:all .12s;padding:0;
+      ">${d}</button>`;
+  }
+  return cells;
+}
+
 function calcObra(o){
-  const diasCusto=(o.diasTrabalhados||[]).length*(parseFloat(o.valorDia)||0);
+  const diasCusto=countDias(o)*(parseFloat(o.valorDia)||0);
   const totalCusto=Object.values(o.custos||{}).reduce((s,v)=>s+(parseFloat(v)||0),0)+diasCusto;
   const venda=parseFloat(o.valorVenda)||0;
   const lucro=venda-totalCusto;
@@ -506,7 +546,7 @@ function confirm2(ttl,sub,cb){
   document.getElementById('confirmOv').classList.add('open');
 }
 function closeConfirm(){document.getElementById('confirmOv').classList.remove('open');confirmCb=null;}
-document.getElementById('confirmOk').onclick=()=>{if(confirmCb)confirmCb();closeConfirm();};
+const _confirmOkEl=document.getElementById('confirmOk');if(_confirmOkEl)_confirmOkEl.onclick=()=>{if(confirmCb)confirmCb();closeConfirm();};
 
 // ── FILTER ──
 function setFilter(f){
@@ -605,7 +645,7 @@ function buildForm(o){
   const pos=lucro>=0;
   const custoItems=[
     ['vidro','🪟','Vidro'],['perfil','🔩','Perfil'],['insumo','🧪','Insumo'],
-    ['gasolina','⛽','Gasolina'],['maoDeObra','🔧','Mão de Obra'],
+    ['gasolina','⛽','Gasolina'],['ferragens','🔑','Ferragens / Acessórios'],
     ['terceiros','👷','Terceiros'],['calhaRufo','🌧️','Calha e Rufo'],['pelicula','🎞️','Película'],
     ['outros','📦','Outros'],
   ];
@@ -694,27 +734,36 @@ function buildForm(o){
         <div class="section-hdr-title">DIAS TRABALHADOS</div>
       </div>
       <div class="section-body">
-        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div class="field" style="flex:1;min-width:140px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field" style="min-width:130px;">
             <label class="field-lbl">Valor por Dia (R$)</label>
             <div style="position:relative;">
               <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);font-weight:600;pointer-events:none;">R$</span>
               <input class="field-inp" type="text" inputmode="decimal" style="padding-left:30px;" value="${o.valorDia?fmtNum(o.valorDia):''}" placeholder="0,00" oninput="updDiasValor('${o.id}',parseBRL(this.value))" onblur="formatMoneyInput(this)">
             </div>
           </div>
-          <div class="field" style="flex:2;min-width:200px;">
-            <label class="field-lbl">Total dias × valor = <strong style="color:var(--green);">${fmtBRL((o.diasTrabalhados||[]).length*(parseFloat(o.valorDia)||0))}</strong></label>
-            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 10px;min-height:42px;">
-              <span style="font-size:13px;font-weight:700;color:var(--blue);min-width:24px;">${(o.diasTrabalhados||[]).length}d</span>
-              ${[...Array(31)].map((_,i)=>{
-                const d=i+1;
-                const sel=(o.diasTrabalhados||[]).includes(d);
-                return`<button onclick="toggleDia('${o.id}',${d})" style="width:28px;height:28px;border-radius:6px;border:1px solid ${sel?'var(--blue)':'var(--border)'};background:${sel?'var(--blue-dim)':'transparent'};color:${sel?'var(--blue)':'var(--muted)'};font-size:11px;font-weight:700;cursor:pointer;transition:all .15s;padding:0;">${d}</button>`;
-              }).join('')}
-            </div>
+          <div class="field" style="min-width:140px;">
+            <label class="field-lbl">Mês</label>
+            <select class="field-inp" style="cursor:pointer;" onchange="updMesDias('${o.id}',this.value)">
+              ${['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'].map((m,i)=>`<option value="${i}" ${(o.mesDias||new Date().getMonth())===i?'selected':''}>${m} ${new Date().getFullYear()}</option>`).join('')}
+            </select>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <span style="font-size:10px;color:var(--muted);font-weight:600;letter-spacing:.6px;text-transform:uppercase;">Total</span>
+            <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:20px;color:var(--green);">${fmtBRL(totalDiasCusto(o))}</span>
+            <span style="font-size:11px;color:var(--muted);">${countDias(o)} dia(s)</span>
           </div>
         </div>
-        ${(o.diasTrabalhados||[]).length>0?`<div style="font-size:12px;color:var(--muted);">Dias selecionados: <strong style="color:var(--text);">${(o.diasTrabalhados||[]).sort((a,b)=>a-b).join(', ')}</strong></div>`:''}
+        <!-- Calendário de dias -->
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;margin-bottom:6px;">
+            ${['D','S','T','Q','Q','S','S'].map(d=>`<div style="text-align:center;font-size:10px;font-weight:700;color:var(--muted);">${d}</div>`).join('')}
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:5px;">
+            ${buildDiasCal(o)}
+          </div>
+        </div>
+        ${countDias(o)>0?`<div style="font-size:12px;color:var(--muted);">Dias selecionados: <strong style="color:var(--text);">${getDiasSel(o).join(', ')}</strong></div>`:''}
       </div>
     </div>
 
@@ -787,8 +836,8 @@ function buildDash(){
   const margemGeral=totalVenda>0?totalLucro/totalVenda*100:0;
   const posCount=calcs.filter(o=>o.lucro>=0).length;
   const negCount=obras.length-posCount;
-  const custoKeys=['vidro','perfil','insumo','gasolina','maoDeObra','terceiros','calhaRufo','pelicula','outros'];
-  const custoLabels=['🪟 Vidro','🔩 Perfil','🧪 Insumo','⛽ Gasolina','🔧 Mão de Obra','👷 Terceiros','🌧️ Calha/Rufo','🎞️ Película','📦 Outros'];
+  const custoKeys=['vidro','perfil','insumo','gasolina','ferragens','terceiros','calhaRufo','pelicula','outros'];
+  const custoLabels=['🪟 Vidro','🔩 Perfil','🧪 Insumo','⛽ Gasolina','🔑 Ferragens/Aces.','👷 Terceiros','🌧️ Calha/Rufo','🎞️ Película','📦 Outros'];
   const custoTotals=custoKeys.map(k=>obras.reduce((s,o)=>s+(parseFloat(o.custos?.[k])||0),0));
   const custoColors=['#4f8ef7','#f5c842','#a78bfa','#f97316','#00e5a0','#06b6d4','#84cc16','#e879f9','#f43f5e'];
   const locaisCount={};
@@ -856,10 +905,19 @@ function updDiasValor(id,val){
 function toggleDia(id,dia){
   pushUndo();
   const o=obras.find(x=>x.id===id);if(!o)return;
-  if(!o.diasTrabalhados)o.diasTrabalhados=[];
-  if(o.diasTrabalhados.includes(dia))o.diasTrabalhados=o.diasTrabalhados.filter(d=>d!==dia);
-  else o.diasTrabalhados.push(dia);
+  if(!o.diasTrabalhados||Array.isArray(o.diasTrabalhados))o.diasTrabalhados={};
+  const mes=getMesDias(o);
+  const key='m'+mes;
+  if(!o.diasTrabalhados[key])o.diasTrabalhados[key]=[];
+  if(o.diasTrabalhados[key].includes(dia))o.diasTrabalhados[key]=o.diasTrabalhados[key].filter(d=>d!==dia);
+  else o.diasTrabalhados[key].push(dia);
   renderContent();rerenderResultado(o);renderSB();scheduleSave();
+}
+function updMesDias(id,mes){
+  const o=obras.find(x=>x.id===id);if(!o)return;
+  o.mesDias=parseInt(mes);
+  if(!o.diasTrabalhados||Array.isArray(o.diasTrabalhados))o.diasTrabalhados={};
+  renderContent();scheduleSave();
 }
 function updCusto(id,key,val){
   pushUndo();
@@ -1167,8 +1225,6 @@ function abrirRelatorioComparativo(){
   renderComp();
 }
 function fecharComp(){document.getElementById('compModal').style.display='none';}
-document.addEventListener('keydown',e=>{if(e.key==='Escape')fecharComp();});
-
 function getCompObras(){
   const days=parseInt(document.getElementById('compPeriod').value)||0;
   if(days===0)return obras;
@@ -1400,7 +1456,7 @@ function baixarCompPNG(){
   a.click();
 }
 
-document.getElementById('reportModal').addEventListener('click',e=>{if(e.target===document.getElementById('reportModal'))closeReport();});
+document.getElementById('reportModal')?.addEventListener('click',e=>{if(e.target===document.getElementById('reportModal'))closeReport();});
 // close filter panel on outside click
 document.addEventListener('click',e=>{
   const panel=document.getElementById('filterPanel');
@@ -1412,9 +1468,8 @@ document.addEventListener('click',e=>{
 });
 
 // close modal on overlay click
-// close modal on overlay click
-document.getElementById('newModal').addEventListener('click',e=>{if(e.target===document.getElementById('newModal'))closeNewModal();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeNewModal();closeConfirm();}});
+document.getElementById('newModal')?.addEventListener('click',e=>{if(e.target===document.getElementById('newModal'))closeNewModal();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeNewModal();closeConfirm();if(typeof fecharComp==='function')fecharComp();if(typeof closeReport==='function')closeReport();}});
 </script>
 <!-- COMPARATIVE MODAL -->
 <div id="compModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:2000;align-items:center;justify-content:center;padding:16px;">
